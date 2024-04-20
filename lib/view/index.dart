@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:sims/view/home.dart';
 import 'package:sims/view/sales.dart';
 import 'package:sims/view/item.dart';
 import 'package:sims/view/settings.dart';
+import 'package:sims/view/salesbranch.dart';
+import 'package:sims/view/itembranch.dart';
 
 class Index extends StatefulWidget {
   const Index({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   _IndexState createState() => _IndexState();
@@ -16,16 +17,7 @@ class Index extends StatefulWidget {
 
 class _IndexState extends State<Index> {
   int _selectedIndex = 0;
-  String fullname = '';
-  String employeeid = '';
-  String image = '';
-  bool isLoading = false;
-  TextEditingController passwordController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  String branch = '';
 
   @override
   Widget build(BuildContext context) {
@@ -34,21 +26,69 @@ class _IndexState extends State<Index> {
       bottomNavigationBar: MyBottomNavBar(
         currentIndex: _selectedIndex,
         onTap: _onNavBarItemTapped,
-        activeColor: Color.fromRGBO(52, 177, 170, 10),
+        activeColor: const Color.fromRGBO(52, 177, 170, 10),
+        onSalesTap: _showBottomModalsales,
+        onItemsTap: _showBottomModalitems,
       ),
+    );
+  }
+
+  void _showBottomModalsales() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(25),
+        ),
+      ),
+      builder: (BuildContext context) {
+        return SalesBranchSelectionBottomSheet(
+          selectedIndexCallback: (index, str) {
+            setState(() {
+              _selectedIndex = index;
+              branch = str;
+            });
+          },
+        );
+      },
+    );
+  }
+
+  void _showBottomModalitems() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(25),
+        ),
+      ),
+      builder: (BuildContext context) {
+        return ItemsBranchSelectionBottomSheet(
+          selectedIndexCallback: (index, str) {
+            setState(() {
+              _selectedIndex = index;
+              branch = str;
+            });
+          },
+        );
+      },
     );
   }
 
   Widget _getBody(int index) {
     switch (index) {
       case 0:
-        return Home();
+        return const Home();
       case 1:
-        return Sales();
+        return Sales(
+          branchid: branch,
+        );
       case 2:
-        return Item();
+        return Item(
+          branchid: branch,
+        );
       case 3:
-        return Settings();
+        return const Settings();
       default:
         return Container();
     }
@@ -59,27 +99,23 @@ class _IndexState extends State<Index> {
       _selectedIndex = index;
     });
   }
-
-  bool _isPasswordObscured = true;
-
-  void _togglePasswordVisibility() {
-    setState(() {
-      _isPasswordObscured = !_isPasswordObscured;
-    });
-  }
 }
 
 class MyBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
+  final Function() onSalesTap;
+  final Function() onItemsTap;
   final Color activeColor;
 
   const MyBottomNavBar({
-    Key? key,
+    super.key,
     required this.currentIndex,
     required this.onTap,
+    required this.onSalesTap,
+    required this.onItemsTap,
     required this.activeColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +123,7 @@ class MyBottomNavBar extends StatelessWidget {
       height: 70,
       child: BottomAppBar(
         notchMargin: 5.0,
-        shape: CircularNotchedRectangle(),
+        shape: const CircularNotchedRectangle(),
         color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -121,7 +157,8 @@ class MyBottomNavBar extends StatelessWidget {
                   children: [
                     IconButton(
                       onPressed: () {
-                        onTap(1);
+                        // onTap(1);
+                        onSalesTap();
                       },
                       icon: Icon(
                         Icons.bar_chart_outlined,
@@ -137,7 +174,7 @@ class MyBottomNavBar extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(),
+              const SizedBox(),
               Padding(
                 padding: const EdgeInsets.only(right: 15.0),
                 child: Column(
@@ -145,7 +182,7 @@ class MyBottomNavBar extends StatelessWidget {
                   children: [
                     IconButton(
                       onPressed: () {
-                        onTap(2);
+                        onItemsTap();
                       },
                       icon: Icon(
                         Icons.view_list,

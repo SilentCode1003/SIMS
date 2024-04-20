@@ -8,13 +8,13 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: '5L SOLUTION',
+      title: 'Asvesti',
       theme: ThemeData(
         primaryColor: Colors.white,
         useMaterial3: false,
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
 }
 
 class OpeningPage extends StatefulWidget {
-  const OpeningPage({Key? key}) : super(key: key);
+  const OpeningPage({super.key});
 
   @override
   _OpeningPageState createState() => _OpeningPageState();
@@ -57,7 +57,7 @@ class _OpeningPageState extends State<OpeningPage> {
           children: [
             SizedBox(
               width: 250,
-              height: 200,
+              height: 300,
               child: Column(
                 children: [
                   Image.asset('assets/asvesti.jpg'),
@@ -67,7 +67,8 @@ class _OpeningPageState extends State<OpeningPage> {
             const SizedBox(height: 100),
             Container(
               child: const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    Color.fromRGBO(52, 177, 170, 10)),
               ),
             ),
           ],
@@ -149,7 +150,7 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       Center(
                         child: Padding(
-                          padding: EdgeInsets.only(top: 75.0),
+                          padding: const EdgeInsets.only(top: 75.0),
                           child: ClipRRect(
                             child: Image.asset(
                               'assets/file.png',
@@ -160,15 +161,15 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 100.0),
+                      const SizedBox(height: 100.0),
                     ],
                   ),
                 ),
                 Container(
                   width: MediaQuery.of(context).size.width,
-                  margin: EdgeInsets.only(top: 280.0),
+                  margin: const EdgeInsets.only(top: 280.0),
                   height: 50,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30.0),
@@ -176,8 +177,8 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 30, right: 30, top: 300),
+                const Padding(
+                  padding: EdgeInsets.only(left: 30, right: 30, top: 300),
                   child: Text(
                     'LOGIN',
                     style: TextStyle(
@@ -225,7 +226,7 @@ class _LoginPageState extends State<LoginPage> {
                     height: 50,
                     width: 250,
                     decoration: BoxDecoration(
-                      color: Color.fromRGBO(52, 177, 170, 10),
+                      color: const Color.fromRGBO(52, 177, 170, 10),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: ElevatedButton(
@@ -259,7 +260,19 @@ class _LoginPageState extends State<LoginPage> {
                 Padding(
                   padding: const EdgeInsets.only(left: 30, right: 30, top: 560),
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // showModalBottomSheet(
+                      //   context: context,
+                      //   shape: const RoundedRectangleBorder(
+                      //     borderRadius: BorderRadius.vertical(
+                      //       top: Radius.circular(25),
+                      //     ),
+                      //   ),
+                      //   builder: (BuildContext context) {
+                      //     return BranchSelectionBottomSheet();
+                      //   },
+                      // );
+                    },
                     child: const Text(
                       'Forgot Password?',
                       style: TextStyle(color: Colors.black, fontSize: 15),

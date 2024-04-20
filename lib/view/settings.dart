@@ -9,22 +9,32 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
+  final List<String> branches = [
+    'Branch A',
+    'Branch B',
+    'Branch C',
+    'Branch D',
+    'Branch E',
+    'Branch F',
+  ];
+
+  String _selectedBranch = '';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text('Settings', style: TextStyle(color: Colors.white)),
+        title: const Text('Settings', style: TextStyle(color: Colors.white)),
         elevation: 0,
-        backgroundColor: Color.fromRGBO(52, 177, 170, 10),
+        backgroundColor: const Color.fromRGBO(52, 177, 170, 10),
         flexibleSpace: FlexibleSpaceBar(
           centerTitle: true,
-          titlePadding: EdgeInsets.only(right: 0.0),
+          titlePadding: const EdgeInsets.only(right: 0.0),
           title: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               badges.Badge(
-                badgeContent: Text(
+                badgeContent: const Text(
                   '1',
                   style: TextStyle(
                     color: Colors.white,
@@ -34,16 +44,15 @@ class _SettingsState extends State<Settings> {
                 ),
                 position: badges.BadgePosition.topEnd(top: 0, end: 5),
                 child: IconButton(
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.notifications,
                     size: 25.0,
                   ),
-                  onPressed: () {
-                  },
+                  onPressed: () {},
                   color: Colors.white,
                 ),
               ),
-              SizedBox(width: 15.0),
+              const SizedBox(width: 15.0),
             ],
           ),
         ),
