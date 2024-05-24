@@ -1,20 +1,28 @@
 import 'dart:io';
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:sims/view/index.dart';
+import 'view/index.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sims/repository/helper.dart';
+import 'package:sims/api/login.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:async';
+import 'package:sims/view/product_update.dart';
 
 void main() async {
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: '5L SOLUTION',
+      title: 'Asvesti',
       theme: ThemeData(
         primaryColor: Colors.white,
         useMaterial3: false,
@@ -26,7 +34,7 @@ class MyApp extends StatelessWidget {
 }
 
 class OpeningPage extends StatefulWidget {
-  const OpeningPage({Key? key}) : super(key: key);
+  const OpeningPage({super.key});
 
   @override
   _OpeningPageState createState() => _OpeningPageState();
@@ -57,7 +65,7 @@ class _OpeningPageState extends State<OpeningPage> {
           children: [
             SizedBox(
               width: 250,
-              height: 200,
+              height: 300,
               child: Column(
                 children: [
                   Image.asset('assets/asvesti.jpg'),
@@ -67,7 +75,8 @@ class _OpeningPageState extends State<OpeningPage> {
             const SizedBox(height: 100),
             Container(
               child: const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    Color.fromRGBO(52, 177, 170, 10)),
               ),
             ),
           ],
@@ -85,13 +94,16 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  String productname = 'all';
   bool isLoading = false;
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  Helper helper = Helper();
 
   @override
   void initState() {
     super.initState();
+    _loadRememberedCredentials();
   }
 
   bool _isPasswordObscured = true;
@@ -100,6 +112,87 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       _isPasswordObscured = !_isPasswordObscured;
     });
+  }
+
+  Future<void> _loadRememberedCredentials() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _usernameController.text = prefs.getString('username') ?? '';
+      _passwordController.text = prefs.getString('password') ?? '';
+    });
+  }
+
+  Future<void> _saveRememberedCredentials() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('username', _usernameController.text);
+    prefs.setString('password', _passwordController.text);
+  }
+
+  Future<void> _login() async {
+    String username = _usernameController.text;
+    String password = _passwordController.text;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await Login().login(username, password);
+
+      if (helper.getStatusString(APIStatus.success) == response.message) {
+        final jsonData = json.encode(response.result);
+        for (var userinfo in json.decode(jsonData)) {
+          helper.writeJsonToFile(userinfo, 'user.json');
+        }
+        _saveRememberedCredentials();
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+              builder: (_) => Index(
+                    selectedIndex: 0,
+                    productname: productname,
+                  )),
+        );
+      } else {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Access'),
+            content: const Text('Incorrect username and password'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  setState(() {
+                    isLoading = false;
+                  });
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (error) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Error'),
+          content: const Text(
+              'Failed to connect to the server. Please try again later.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                setState(() {
+                  isLoading = false;
+                });
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Future<bool> _onWillPop() async {
@@ -149,7 +242,7 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       Center(
                         child: Padding(
-                          padding: EdgeInsets.only(top: 75.0),
+                          padding: const EdgeInsets.only(top: 75.0),
                           child: ClipRRect(
                             child: Image.asset(
                               'assets/file.png',
@@ -160,15 +253,15 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 100.0),
+                      const SizedBox(height: 100.0),
                     ],
                   ),
                 ),
                 Container(
                   width: MediaQuery.of(context).size.width,
-                  margin: EdgeInsets.only(top: 280.0),
+                  margin: const EdgeInsets.only(top: 280.0),
                   height: 50,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30.0),
@@ -176,8 +269,8 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 30, right: 30, top: 300),
+                const Padding(
+                  padding: EdgeInsets.only(left: 30, right: 30, top: 300),
                   child: Text(
                     'LOGIN',
                     style: TextStyle(
@@ -198,7 +291,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(left: 30, right: 30, top: 435),
+                  padding: const EdgeInsets.only(left: 30, right: 30, top: 440),
                   child: TextField(
                     obscureText: _isPasswordObscured,
                     controller: _passwordController,
@@ -225,17 +318,18 @@ class _LoginPageState extends State<LoginPage> {
                     height: 50,
                     width: 250,
                     decoration: BoxDecoration(
-                      color: Color.fromRGBO(52, 177, 170, 10),
+                      color: const Color.fromRGBO(52, 177, 170, 10),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const Index(),
-                          ),
-                        );
+                        _login();
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //     builder: (context) => const Index(),
+                        //   ),
+                        // );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromRGBO(52, 177, 170, 10),
@@ -259,7 +353,14 @@ class _LoginPageState extends State<LoginPage> {
                 Padding(
                   padding: const EdgeInsets.only(left: 30, right: 30, top: 560),
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProductUpdate(),
+                        ),
+                      );
+                    },
                     child: const Text(
                       'Forgot Password?',
                       style: TextStyle(color: Colors.black, fontSize: 15),
