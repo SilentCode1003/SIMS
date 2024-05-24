@@ -116,7 +116,7 @@ class _ItemState extends State<Item> {
           );
           iteminventory.add(items);
         });
-        await _getimage(itemsinfo['productid'].toString());
+        // await _getimage(itemsinfo['productid'].toString());
       }
       printProductIds();
     }
@@ -139,7 +139,7 @@ class _ItemState extends State<Item> {
           );
           iteminventory.add(items);
         });
-        await _getimage(itemsinfo['productid'].toString());
+        // await _getimage(itemsinfo['productid'].toString());
       }
       printProductIds();
     }
@@ -463,6 +463,20 @@ class _ItemState extends State<Item> {
                                     onTap: () {
                                       print(
                                         iteminventory[index].productid,
+                                      );
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        builder: (BuildContext context) {
+                                          return Container(
+                                            height: MediaQuery.of(context)
+                                                .size
+                                                .height,
+                                            child: Stack(
+                                              children: [],
+                                            ),
+                                          );
+                                        },
                                       );
                                     },
                                     child: Container(

@@ -158,53 +158,50 @@ class _SearchtState extends State<Search> {
                     right: 0,
                     child: Container(
                       height: MediaQuery.of(context).size.height,
-                      color: Colors.red,
-                      child: Stack(
-                        children: [
-                          Positioned(
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                height: 50,
-                                color: Colors.blue,
-                                child: Stack(
-                                  children: [
-                                    Positioned(
-                                      top: 10,
-                                      left: 15,
-                                      child: Icon(
-                                        Icons.access_time,
-                                        size: 30.0,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    Positioned(
-                                        top: 15,
-                                        left: 60,
-                                        child: Text(
-                                          'Color',
-                                          style: TextStyle(fontSize: 17),
-                                        )),
-                                    Positioned(
-                                      top: 10,
-                                      right: 15,
-                                      child: Transform.rotate(
-                                        angle: 4.80,
-                                        child: Icon(
-                                          Icons.arrow_outward,
-                                          size: 30.0,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    )
-                                  ],
+                      color: Colors.white,
+                      child: ListView.builder(
+                        itemCount: 10,
+                        itemBuilder: (BuildContext context, int index) {
+                          return Container(
+                            height: 50,
+                            color: Colors.white,
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  top: 10,
+                                  left: 15,
+                                  child: Icon(
+                                    Icons.access_time,
+                                    size: 30.0,
+                                    color: Colors.black,
+                                  ),
                                 ),
-                              ))
-                        ],
+                                Positioned(
+                                  top: 15,
+                                  left: 60,
+                                  child: Text(
+                                    'Color',
+                                    style: TextStyle(fontSize: 17),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 10,
+                                  right: 15,
+                                  child: Transform.rotate(
+                                    angle: 4.80,
+                                    child: Icon(
+                                      Icons.arrow_outward,
+                                      size: 30.0,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          );
+                        },
                       ),
-                    ),
-                  )
+                    ))
                 : Positioned(
                     top: 0,
                     left: 0,
