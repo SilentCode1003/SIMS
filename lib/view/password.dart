@@ -1,30 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:badges/badges.dart' as badges;
 
-class Item extends StatefulWidget {
-  const Item({super.key});
+class ChangePassword extends StatefulWidget {
+  const ChangePassword({super.key});
 
   @override
-  State<Item> createState() => _ItemState();
+  State<ChangePassword> createState() => _MyWidgetState();
 }
 
-class _ItemState extends State<Item> {
+class _MyWidgetState extends State<ChangePassword> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text('Items', style: TextStyle(color: Colors.white)),
-        backgroundColor: Color.fromRGBO(52, 177, 170, 10),
+        automaticallyImplyLeading: true,
+        title: const Text('Change Password',
+            style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color.fromRGBO(52, 177, 170, 10),
         elevation: 0,
         flexibleSpace: FlexibleSpaceBar(
           centerTitle: true,
-          titlePadding: EdgeInsets.only(right: 0.0),
+          titlePadding: const EdgeInsets.only(right: 0.0),
           title: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               badges.Badge(
-                badgeContent: Text(
+                badgeContent: const Text(
                   '1',
                   style: TextStyle(
                     color: Colors.white,
@@ -34,16 +35,15 @@ class _ItemState extends State<Item> {
                 ),
                 position: badges.BadgePosition.topEnd(top: 0, end: 5),
                 child: IconButton(
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.notifications,
                     size: 25.0,
                   ),
-                  onPressed: () {
-                  },
+                  onPressed: () {},
                   color: Colors.white,
                 ),
               ),
-              SizedBox(width: 15.0),
+              const SizedBox(width: 15.0),
             ],
           ),
         ),
