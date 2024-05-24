@@ -1,12 +1,14 @@
 import 'dart:convert';
+
 import 'package:sims/model/responce.dart';
+
 import '../config.dart';
 import 'package:http/http.dart' as http;
 
-class Inventory {
-  Future<ResponceModel> getallinventory() async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allproductAPI}');
-    final response = await http.post(url);
+class Week {
+  Future<ResponceModel> allweeklysales(String daterange) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.allweeklysales}');
+    final response = await http.post(url, body: {'daterange': daterange});
 
     final responseData = json.decode(response.body);
     final status = response.statusCode;
@@ -18,29 +20,24 @@ class Inventory {
     return data;
   }
 
-  Future<ResponceModel> filterallinventory(String category) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allproductAPI}');
-    final response = await http.post(url, body: {
-      'category': category,
-    });
+  Future<ResponceModel> byweeklysales(String daterange, String branch) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.allweeklysales}');
+    final response =
+        await http.post(url, body: {'daterange': daterange, 'branch': branch});
 
     final responseData = json.decode(response.body);
     final status = response.statusCode;
     final message = responseData['msg'];
     final result = responseData['data'] ?? [];
     final description = responseData['description'] ?? "";
-
-    print('result $result');
 
     ResponceModel data = ResponceModel(message, status, result, description);
     return data;
   }
 
-  Future<ResponceModel> getinventory(String branch) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allproductAPI}');
-    final response = await http.post(url, body: {
-      'branch': branch,
-    });
+  Future<ResponceModel> allweeklygraph(String daterange) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.weeklygraph}');
+    final response = await http.post(url, body: {'daterange': daterange});
 
     final responseData = json.decode(response.body);
     final status = response.statusCode;
@@ -48,18 +45,45 @@ class Inventory {
     final result = responseData['data'] ?? [];
     final description = responseData['description'] ?? "";
 
-    print('result $result');
+    ResponceModel data = ResponceModel(message, status, result, description);
+
+    return data;
+  }
+
+  Future<ResponceModel> byweeklygraph(String daterange, String branch) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.weeklygraph}');
+    final response =
+        await http.post(url, body: {'daterange': daterange, 'branch': branch});
+
+    final responseData = json.decode(response.body);
+    final status = response.statusCode;
+    final message = responseData['msg'];
+    final result = responseData['data'] ?? [];
+    final description = responseData['description'] ?? "";
+
+    ResponceModel data = ResponceModel(message, status, result, description);
+
+    return data;
+  }
+
+  Future<ResponceModel> alltopseller(String daterange) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.weeklytopseller}');
+    final response = await http.post(url, body: {'daterange': daterange});
+
+    final responseData = json.decode(response.body);
+    final status = response.statusCode;
+    final message = responseData['msg'];
+    final result = responseData['data'] ?? [];
+    final description = responseData['description'] ?? "";
 
     ResponceModel data = ResponceModel(message, status, result, description);
     return data;
   }
 
-  Future<ResponceModel> filterinventory(String branch, String category) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allproductAPI}');
-    final response = await http.post(url, body: {
-      'branch': branch,
-      'category': category,
-    });
+  Future<ResponceModel> bytopseller(String daterange, String branch) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.weeklytopseller}');
+    final response =
+        await http.post(url, body: {'daterange': daterange, 'branch': branch});
 
     final responseData = json.decode(response.body);
     final status = response.statusCode;
@@ -67,17 +91,14 @@ class Inventory {
     final result = responseData['data'] ?? [];
     final description = responseData['description'] ?? "";
 
-    print('result $result');
-
     ResponceModel data = ResponceModel(message, status, result, description);
+
     return data;
   }
 
-  Future<ResponceModel> searchinventory(String productname) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allproductAPI}');
-    final response = await http.post(url, body: {
-      'productname': productname,
-    });
+  Future<ResponceModel> allitem(String daterange) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.item}');
+    final response = await http.post(url, body: {'daterange': daterange});
 
     final responseData = json.decode(response.body);
     final status = response.statusCode;
@@ -85,58 +106,15 @@ class Inventory {
     final result = responseData['data'] ?? [];
     final description = responseData['description'] ?? "";
 
-    print('result $result');
-
     ResponceModel data = ResponceModel(message, status, result, description);
+
     return data;
   }
 
-  Future<ResponceModel> getimage(String productid) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.getimageAPI}');
-    final response = await http.post(url, body: {
-      'productid': productid,
-    });
-
-    final responseData = json.decode(response.body);
-    final status = response.statusCode;
-    final message = responseData['msg'];
-    final result = responseData['data'] ?? [];
-    final description = responseData['description'] ?? "";
-
-    print('result $result');
-
-    ResponceModel data = ResponceModel(message, status, result, description);
-    return data;
-  }
-
-  Future<ResponceModel> save(String descriptions, String price, String category,
-      String barcode, String cost, String selectedFile, String fullname) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.saveproduct}');
-    final response = await http.post(url, body: {
-      'description': descriptions,
-      'price': price,
-      'category': category,
-      'barcode': barcode,
-      'cost': cost,
-      'productimage': selectedFile,
-      'fullname': fullname,
-    });
-
-    final responseData = json.decode(response.body);
-    final status = response.statusCode;
-    final message = responseData['msg'];
-    final result = responseData['data'] ?? [];
-    final description = responseData['description'] ?? "";
-
-    print('result $result');
-
-    ResponceModel data = ResponceModel(message, status, result, description);
-    return data;
-  }
-
-  Future<ResponceModel> getallimage() async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allImage}');
-    final response = await http.post(url);
+  Future<ResponceModel> byitem(String daterange, String branch) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.item}');
+    final response =
+        await http.post(url, body: {'daterange': daterange, 'branch': branch});
 
     final responseData = json.decode(response.body);
     final status = response.statusCode;
@@ -145,7 +123,7 @@ class Inventory {
     final description = responseData['description'] ?? "";
 
     ResponceModel data = ResponceModel(message, status, result, description);
-    print('resulta: $result');
+
     return data;
   }
 }

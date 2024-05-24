@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'package:intl/intl.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:flutter/widgets.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:flutter_multi_formatter/formatters/formatter_utils.dart';
+import '../model/modelinfo.dart';
+import '../repository/helper.dart';
+import 'package:sims/view/itembranch.dart';
+import 'package:sims/api/home.dart';
+import 'package:sims/api/inventory.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:async';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -11,39 +23,228 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  String getMonthName(int index) {
-    List<String> months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    if (index >= 0 && index < months.length) {
-      return months[index];
+  String selectedBranch = 'all';
+  dynamic GrossSales = '';
+  dynamic Discounts = '';
+  dynamic NetSales = '';
+  dynamic Refunds = '';
+  dynamic GrossProfit = '';
+  DateTime year = DateTime.now();
+  bool _dataFetched = false;
+  Helper helper = Helper();
+  List<SalesGraph> salesgraph = [];
+  List<EmployeeGraph> employeegraph = [];
+  List<TotalItemsModel> totaldailyitems = [];
+  List<Topseller> topseller = [];
+  List<double> _dataSource = [];
+  List<AllImage> allimage = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // _getimage();
+    if (selectedBranch == 'all') {
+      _getallweeksales();
+      _getalltopseller();
+      _getallyeargraphemployee();
     } else {
-      return '';
+      setState(() {
+        _getbyweeksales();
+        _getbytopseller();
+        _getbyyeargraphemployee();
+      });
     }
   }
 
-  String getTopSeller(int index) {
-    List<String> months = [
-      'Brush',
-      'Painting',
-      'Painting Service',
-      '1kg Alrik',
-    ];
-    if (index >= 0 && index < months.length) {
-      return months[index];
+  Future<void> _getimage() async {
+    print('gumagana naman to');
+    final response = await Inventory().getallimage();
+    if (helper.getStatusString(APIStatus.success) == response.message) {
+      final jsondata = json.encode(response.result);
+      for (var imageinfo in json.decode(jsondata)) {
+        setState(() {
+          AllImage images = AllImage.fromJson(imageinfo);
+          allimage.add(images);
+        });
+      }
+      // After adding all images, save to JSON file
+      Map<String, dynamic> jsonData = {
+        'images': allimage.map((image) => image.toJson()).toList(),
+      };
+      await helper.writeJsonToFile(jsonData, 'image.json');
+    }
+  }
+
+  Future<void> _getallweeksales() async {
+    DateFormat dateFormat = DateFormat('yyyy');
+    String formattedFirstDate = dateFormat.format(year);
+    final response = await Dashboard().allyearsales(formattedFirstDate);
+    if (helper.getStatusString(APIStatus.success) == response.message) {
+      final jsondata = json.encode(response.result);
+      for (var monthsalesinfo in json.decode(jsondata)) {
+        setState(() {
+          MonthsalesModel dailysales = MonthsalesModel(
+            monthsalesinfo['GrossSales'].toString(),
+            monthsalesinfo['Discounts'].toString(),
+            monthsalesinfo['NetSales'].toString(),
+            monthsalesinfo['Refunds'].toString(),
+            monthsalesinfo['GrossProfit'].toString(),
+          );
+          GrossSales = dailysales.GrossSales;
+          Discounts = dailysales.Discounts;
+          NetSales = dailysales.NetSales;
+          Refunds = dailysales.Refunds;
+          GrossProfit = dailysales.GrossProfit;
+        });
+      }
+    }
+  }
+
+  Future<void> _getbyweeksales() async {
+    DateFormat dateFormat = DateFormat('yyyy-MM-dd');
+    String formattedFirstDate = dateFormat.format(year);
+    final response =
+        await Dashboard().byyearsales(formattedFirstDate, selectedBranch);
+    if (helper.getStatusString(APIStatus.success) == response.message) {
+      final jsondata = json.encode(response.result);
+      for (var monthsalesinfo in json.decode(jsondata)) {
+        setState(() {
+          MonthsalesModel dailysales = MonthsalesModel(
+            monthsalesinfo['GrossSales'].toString(),
+            monthsalesinfo['Discounts'].toString(),
+            monthsalesinfo['NetSales'].toString(),
+            monthsalesinfo['Refunds'].toString(),
+            monthsalesinfo['GrossProfit'].toString(),
+          );
+          GrossSales = dailysales.GrossSales;
+          Discounts = dailysales.Discounts;
+          NetSales = dailysales.NetSales;
+          Refunds = dailysales.Refunds;
+          GrossProfit = dailysales.GrossProfit;
+        });
+      }
+    }
+  }
+
+  Future<void> _getGraphData() async {
+    if (selectedBranch == 'all') {
+      await _getallyeargraph();
     } else {
-      return '';
+      await _getallyeargraph();
+    }
+  }
+
+  Future<void> _getallyeargraph() async {
+    DateFormat dateFormat = DateFormat('yyyy');
+    String formattedFirstDate = dateFormat.format(year);
+    final response = await Dashboard().allyeargraph(formattedFirstDate);
+    if (helper.getStatusString(APIStatus.success) == response.message) {
+      final jsondata = json.decode(json.encode(response.result));
+      setState(() {
+        salesgraph = (jsondata as List)
+            .map((json) => SalesGraph.fromJson(json))
+            .toList();
+      });
+    }
+  }
+
+  Future<void> _getbyyeargraph() async {
+    DateFormat dateFormat = DateFormat('yyyy');
+    String formattedFirstDate = dateFormat.format(year);
+    final response =
+        await Dashboard().byyeargraph(formattedFirstDate, selectedBranch);
+    if (helper.getStatusString(APIStatus.success) == response.message) {
+      final jsondata = json.decode(json.encode(response.result));
+      setState(() {
+        salesgraph = (jsondata as List)
+            .map((json) => SalesGraph.fromJson(json))
+            .toList();
+      });
+    }
+  }
+
+  Future<void> _getalltopseller() async {
+    DateFormat dateFormat = DateFormat('yyyy');
+    String formattedFirstDate = dateFormat.format(year);
+    final response = await Dashboard().alltopseller(formattedFirstDate);
+    if (helper.getStatusString(APIStatus.success) == response.message) {
+      final jsondata = json.encode(response.result);
+      List<double> dataSource = [];
+      for (var monthsalesinfo in json.decode(jsondata)) {
+        setState(() {
+          Topseller topsellers = Topseller(
+            monthsalesinfo['name'].toString(),
+            monthsalesinfo['totalQuantity'].toDouble(),
+          );
+          topseller.add(topsellers);
+          dataSource.add(topsellers.totalQuantity);
+        });
+      }
+      setState(() {
+        _dataSource = dataSource;
+      });
+    }
+  }
+
+  Future<void> _getbytopseller() async {
+    DateFormat dateFormat = DateFormat('yyyy');
+    String formattedFirstDate = dateFormat.format(year);
+    ;
+    final response =
+        await Dashboard().bytopseller(formattedFirstDate, selectedBranch);
+    if (helper.getStatusString(APIStatus.success) == response.message) {
+      final jsondata = json.encode(response.result);
+      List<double> dataSource = [];
+      for (var monthsalesinfo in json.decode(jsondata)) {
+        setState(() {
+          Topseller topsellers = Topseller(
+            monthsalesinfo['name'].toString(),
+            monthsalesinfo['totalQuantity'].toDouble(),
+          );
+          topseller.add(topsellers);
+          dataSource.add(topsellers.totalQuantity);
+        });
+      }
+      setState(() {
+        _dataSource = dataSource;
+      });
+    }
+  }
+
+  Future<void> _getGraphDataEmployee() async {
+    if (selectedBranch == 'all') {
+      await _getallyeargraphemployee();
+    } else {
+      await _getbyyeargraphemployee();
+    }
+  }
+
+  Future<void> _getallyeargraphemployee() async {
+    DateFormat dateFormat = DateFormat('yyyy');
+    String formattedFirstDate = dateFormat.format(year);
+    final response = await Dashboard().alltopemployee(formattedFirstDate);
+    if (helper.getStatusString(APIStatus.success) == response.message) {
+      final jsondata = json.decode(json.encode(response.result));
+      setState(() {
+        employeegraph = (jsondata as List)
+            .map((json) => EmployeeGraph.fromJson(json))
+            .toList();
+      });
+    }
+  }
+
+  Future<void> _getbyyeargraphemployee() async {
+    DateFormat dateFormat = DateFormat('yyyy');
+    String formattedFirstDate = dateFormat.format(year);
+    final response =
+        await Dashboard().bytopemployee(formattedFirstDate, selectedBranch);
+    if (helper.getStatusString(APIStatus.success) == response.message) {
+      final jsondata = json.decode(json.encode(response.result));
+      setState(() {
+        employeegraph = (jsondata as List)
+            .map((json) => EmployeeGraph.fromJson(json))
+            .toList();
+      });
     }
   }
 
@@ -124,334 +325,614 @@ class _HomeState extends State<Home> {
         return false;
       },
       child: Scaffold(
-        body: Container(
-          height: MediaQuery.of(context).size.height,
+          body: SingleChildScrollView(
+        child: Container(
           color: Colors.white,
-          child: SingleChildScrollView(
-            child: Stack(
-              alignment: AlignmentDirectional.topStart,
-              children: [
-                Container(
-                  height: 285,
-                  width: MediaQuery.of(context).size.width,
-                  color: const Color.fromRGBO(52, 177, 170, 10),
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 65.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(width: 20.0),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(30.0),
-                              child: Image.asset(
-                                'assets/file.png',
-                                fit: BoxFit.cover,
-                                width: 60.0,
-                                height: 60.0,
-                              ),
-                            ),
-                            const SizedBox(width: 15.0),
-                            const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(height: 5.0),
-                                Text(
-                                  "Hey Good Day!",
-                                  style: TextStyle(
-                                    fontSize: 15.0,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                Text(
-                                  'Juan Dela Cruz',
-                                  style: TextStyle(
-                                    fontSize: 20.0,
-                                    fontWeight: FontWeight.normal,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                SizedBox(height: 167.0),
-                              ],
-                            ),
-                            Expanded(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  // if (UnreadCount != 0)
-                                  badges.Badge(
-                                    badgeContent: const Text(
-                                      // UnreadCount.toString(),
-                                      '1',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    position: badges.BadgePosition.topEnd(
-                                      top: 0,
-                                      end: 5,
-                                    ),
-                                    child: IconButton(
-                                      icon: const Icon(
-                                        Icons.notifications,
-                                        size: 25.0,
-                                      ),
-                                      onPressed: () {},
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 15.0),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+          height: 1560,
+          child: Stack(
+            children: [
+              Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    color: Color.fromRGBO(52, 177, 170, 10),
+                    height: 295,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 65.0),
+                      child: Stack(
+                        children: [],
+                      ),
                     ),
+                  )),
+              Positioned(
+                top: 60,
+                left: 20,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(30.0),
+                  child: Image.asset(
+                    'assets/file.png',
+                    fit: BoxFit.cover,
+                    width: 60.0,
+                    height: 60.0,
                   ),
                 ),
-                Positioned(
-                  top: 160,
-                  right: 0,
-                  left: 0,
+              ),
+              Positioned(
+                top: 68,
+                left: 90,
+                child: Text(
+                  "Hey Good Day!",
+                  style: TextStyle(
+                    fontSize: 15.0,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 87,
+                left: 90,
+                child: Text(
+                  "Juan Dela Cruz",
+                  style: TextStyle(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 67,
+                right: 0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    // if (UnreadCount != 0)
+                    badges.Badge(
+                      badgeContent: const Text(
+                        // UnreadCount.toString(),
+                        '1',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                      position: badges.BadgePosition.topEnd(
+                        top: 0,
+                        end: 5,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.notifications,
+                          size: 25.0,
+                        ),
+                        onPressed: () {},
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 15.0),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: 135,
+                right: 0,
+                left: 0,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(
-                          left: 20,
-                        ),
-                        child: Container(
-                          width: MediaQuery.of(context).size.width * 0.45,
-                          height: 90.0,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10.0),
+                          padding: const EdgeInsets.only(
+                            left: 10,
                           ),
-                          child: const Center(
-                            child: Text(
-                              'Container 1',
-                              style: TextStyle(
-                                fontSize: 16.0,
-                                color: Colors.black,
-                              ),
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * 0.46,
+                            height: 140.0,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10.0),
                             ),
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          right: 20,
-                        ),
-                        child: Container(
-                          width: MediaQuery.of(context).size.width * 0.45,
-                          height: 90.0,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              'Container 1',
-                              style: TextStyle(
-                                fontSize: 16.0,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  width: MediaQuery.of(context).size.width,
-                  margin: const EdgeInsets.only(
-                    top: 300.0,
-                    left: 20,
-                    right: 20,
-                  ),
-                  height: 400,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(
-                      color: Colors.black12,
-                      width: 1,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.only(top: 20.0, left: 25),
-                        child: Text(
-                          'Sales Statistic',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(right: 10.0, left: 10.0),
-                        child: Expanded(
-                          child: SfCartesianChart(
-                            legend: Legend(
-                              isVisible: true,
-                              position: LegendPosition.bottom,
-                              legendItemBuilder: (String name, dynamic series,
-                                  dynamic point, int index) {
-                                return SizedBox(
-                                  height: 40,
-                                  width: 60,
-                                  child: Row(
-                                    children: <Widget>[
-                                      Container(
-                                        width: 10,
-                                        height: 10,
-                                        color: series.color,
-                                      ),
-                                      const Padding(
-                                        padding: EdgeInsets.all(2.0),
-                                      ),
-                                      Text(
-                                        name,
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                    ],
+                            child: Column(
+                              children: [
+                                SizedBox(height: 10),
+                                Container(
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color:
+                                          Colors.deepPurple.withOpacity(0.1)),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: Icon(
+                                      Icons.shopping_cart,
+                                      color: Colors.deepPurple,
+                                      size: 40,
+                                    ),
                                   ),
-                                );
-                              },
+                                ),
+                                SizedBox(height: 10),
+                                Text(
+                                  '₱ ${toCurrencyString(GrossSales.toString())}',
+                                  // TotalDaily,
+                                  style: TextStyle(
+                                    color: Colors.black45,
+                                    fontSize: 22.0,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                const Text(
+                                  'GROSS SALES',
+                                  style: TextStyle(
+                                    color: Colors.black38,
+                                    fontSize: 14.0,
+                                  ),
+                                ),
+                              ],
                             ),
-                            primaryXAxis: const CategoryAxis(
-                              majorTickLines: MajorTickLines(size: 0),
-                              labelPlacement: LabelPlacement.onTicks,
-                            ),
-                            series: <CartesianSeries>[
-                              SplineSeries<double, String>(
-                                color: const Color.fromRGBO(52, 177, 170, 1.0),
-                                dataSource: const <double>[
-                                  1,
-                                  1,
-                                  1,
-                                  5,
-                                  4,
-                                ],
-                                xValueMapper: (double value, _) =>
-                                    getMonthName(value.toInt()),
-                                yValueMapper: (double value, _) => value,
-                                name: 'Imus',
-                              ),
-                              SplineSeries<double, String>(
-                                color: Colors.blue,
-                                dataSource: const <double>[
-                                  2,
-                                  2,
-                                  1,
-                                  4,
-                                  5,
-                                ],
-                                xValueMapper: (double value, _) =>
-                                    getMonthName(value.toInt()),
-                                yValueMapper: (double value, _) => value,
-                                name: 'Manila',
-                              ),
-                            ],
+                          )),
+                      Padding(
+                          padding: const EdgeInsets.only(
+                            left: 10,
                           ),
-                        ),
-                      ),
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * 0.46,
+                            height: 140.0,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            child: Column(
+                              children: [
+                                SizedBox(height: 10),
+                                Container(
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.redAccent.withOpacity(0.1)),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: Icon(
+                                      Icons.repeat,
+                                      color: Colors.redAccent,
+                                      size: 40,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                Text(
+                                  '₱ ${toCurrencyString(Refunds.toString())}',
+                                  // TotalDaily,
+                                  style: TextStyle(
+                                    color: Colors.black45,
+                                    fontSize: 22.0,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                const Text(
+                                  'REFUNDS',
+                                  style: TextStyle(
+                                    color: Colors.black38,
+                                    fontSize: 14.0,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )),
+                      Padding(
+                          padding: const EdgeInsets.only(
+                            left: 10,
+                          ),
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * 0.46,
+                            height: 140.0,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            child: Column(
+                              children: [
+                                SizedBox(height: 10),
+                                Container(
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.amber.withOpacity(0.1)),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: Icon(
+                                      Icons.discount,
+                                      color: Colors.amber,
+                                      size: 40,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                Text(
+                                  '₱ ${toCurrencyString(Discounts.toString())}',
+                                  // TotalDaily,
+                                  style: TextStyle(
+                                    color: Colors.black45,
+                                    fontSize: 22.0,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                const Text(
+                                  'DISCOUNTS',
+                                  style: TextStyle(
+                                    color: Colors.black38,
+                                    fontSize: 14.0,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )),
+                      Padding(
+                          padding: const EdgeInsets.only(
+                            left: 10,
+                          ),
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * 0.46,
+                            height: 140.0,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            child: Column(
+                              children: [
+                                SizedBox(height: 10),
+                                Container(
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color:
+                                          Colors.blueAccent.withOpacity(0.1)),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: Icon(
+                                      Icons.bar_chart,
+                                      color: Colors.blueAccent,
+                                      size: 40,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                Text(
+                                  '₱ ${toCurrencyString(NetSales.toString())}',
+                                  // TotalDaily,
+                                  style: TextStyle(
+                                    color: Colors.black45,
+                                    fontSize: 22.0,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                const Text(
+                                  'NET SALES',
+                                  style: TextStyle(
+                                    color: Colors.black38,
+                                    fontSize: 14.0,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )),
+                      Padding(
+                          padding: const EdgeInsets.only(left: 10, right: 10),
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * 0.46,
+                            height: 140.0,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            child: Column(
+                              children: [
+                                SizedBox(height: 10),
+                                Container(
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.green.withOpacity(0.1)),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: Icon(
+                                      Icons.moving,
+                                      color: Colors.green,
+                                      size: 40,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                Text(
+                                  '₱ ${toCurrencyString(GrossProfit.toString())}',
+                                  // TotalDaily,
+                                  style: TextStyle(
+                                    color: Colors.black45,
+                                    fontSize: 22.0,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                const Text(
+                                  'GROSS PROFIT',
+                                  style: TextStyle(
+                                    color: Colors.black38,
+                                    fontSize: 14.0,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )),
                     ],
                   ),
                 ),
-                SizedBox(height: 10),
-                Container(
+              ),
+              Positioned(
+                  top: 310,
+                  left: 10,
+                  child: GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(25),
+                            ),
+                          ),
+                          builder: (BuildContext context) {
+                            return ItemsBranchSelectionBottomSheet(
+                              selectedIndexCallback: (String branch) {
+                                setState(() {
+                                  selectedBranch = branch;
+                                  if (selectedBranch == 'all') {
+                                    _getallweeksales();
+                                    salesgraph.clear();
+                                    _getallyeargraph();
+                                    topseller.clear();
+                                    _getalltopseller();
+                                    employeegraph.clear();
+                                    _getallyeargraphemployee();
+                                  } else {
+                                    setState(() {
+                                      _getbyweeksales();
+                                      salesgraph.clear();
+                                      _getbyyeargraph();
+                                      topseller.clear();
+                                      _getbytopseller();
+                                      employeegraph.clear();
+                                      _getbyyeargraphemployee();
+                                    });
+                                  }
+                                });
+                              },
+                            );
+                          },
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.store_outlined,
+                            size: 30,
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Text('$selectedBranch',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold))
+                        ],
+                      ))),
+              Positioned(
+                  top: 310,
+                  right: 10,
+                  child: Row(
+                    children: [
+                      Text('2024',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 25,
+                      ),
+                    ],
+                  )),
+              Positioned(
+                top: 350,
+                left: 10,
+                right: 10,
+                child: Container(
                   width: MediaQuery.of(context).size.width,
-                  margin: const EdgeInsets.only(
-                    top: 700.0,
-                    left: 20,
-                    right: 20,
-                  ),
-                  height: 400,
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(
-                      color: Colors.black12,
-                      width: 1,
-                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.black26, width: 1),
                   ),
                   child: Column(
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.only(top: 20.0, left: 25),
-                        child: Text(
-                          'Top Seller',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
+                      SizedBox(height: 20),
+                      Text(
+                        'Sales Graph',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 20),
                       ),
-                      Expanded(
-                        child: SfCartesianChart(
-                          legend: Legend(
-                            isVisible: true,
-                            position: LegendPosition.bottom,
-                            legendItemBuilder: (String name, dynamic series,
-                                dynamic point, int index) {
-                              return SizedBox(
-                                height: 40,
-                                width: 60,
-                                child: Row(
-                                  children: <Widget>[
-                                    Container(
-                                      width: 10,
-                                      height: 10,
-                                      color: series.color,
-                                    ),
-                                    const Padding(
-                                      padding: EdgeInsets.all(2.0),
-                                    ),
-                                    Text(
-                                      name,
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                  ],
+                      Padding(
+                        padding: EdgeInsets.only(
+                            left: 0, right: 10, bottom: 20, top: 20),
+                        child: FutureBuilder<void>(
+                          future: !_dataFetched ? _getGraphData() : null,
+                          builder: (context, _) {
+                            _dataFetched = true;
+                            return SfCartesianChart(
+                              primaryXAxis: CategoryAxis(
+                                majorTickLines: MajorTickLines(size: 0),
+                                labelPlacement: LabelPlacement.onTicks,
+                              ),
+                              primaryYAxis: NumericAxis(
+                                isVisible: true,
+                                numberFormat: NumberFormat.compact(),
+                              ),
+                              series: <CartesianSeries>[
+                                AreaSeries<SalesGraph, String>(
+                                  color: Color.fromRGBO(52, 177, 170, 1.0),
+                                  dataSource: salesgraph,
+                                  xValueMapper: (SalesGraph sales, _) =>
+                                      sales.date,
+                                  yValueMapper: (SalesGraph sales, _) =>
+                                      sales.total,
+                                  markerSettings: MarkerSettings(
+                                    isVisible: true,
+                                  ),
+                                  // dataLabelSettings: DataLabelSettings(
+                                  //   isVisible: _showDataLabels,
+                                  // ),
                                 ),
-                              );
-                            },
-                          ),
-                          primaryXAxis: const CategoryAxis(),
-                          series: <CartesianSeries>[
-                            ColumnSeries<double, String>(
-                              color: const Color.fromRGBO(52, 177, 170, 1.0),
-                              dataSource: const <double>[
-                                3,
-                                1,
-                                2,
-                                5,
                               ],
-                              xValueMapper: (double value, _) =>
-                                  getTopSeller(value.toInt()),
-                              yValueMapper: (double value, _) => value,
-                              name: 'Brush',
+                            );
+                          },
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 775,
+                left: 10,
+                right: 10,
+                child: Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: 390,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.black26, width: 1),
+                  ),
+                  child: topseller.isEmpty
+                      ? Center(
+                          child: Text(
+                            'No data found',
+                            style: TextStyle(fontSize: 20),
+                          ),
+                        )
+                      : Column(
+                          children: [
+                            SizedBox(height: 20),
+                            Text(
+                              'Top Sellers',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 20),
+                            ),
+                            SfCircularChart(
+                              legend: Legend(
+                                isVisible: true,
+                                position: LegendPosition.bottom,
+                                overflowMode: LegendItemOverflowMode.wrap,
+                              ),
+                              series: <CircularSeries>[
+                                DoughnutSeries<double, String>(
+                                  dataSource: _dataSource,
+                                  dataLabelSettings: DataLabelSettings(
+                                    isVisible: true, // Show data labels
+                                    labelPosition:
+                                        ChartDataLabelPosition.inside,
+                                    textStyle: TextStyle(color: Colors.white),
+                                  ),
+                                  pointColorMapper: (double value, int index) {
+                                    if (index < topseller.length) {
+                                      double totalQuantity =
+                                          topseller[index].totalQuantity;
+                                      if (index >= topseller.length * 0.8) {
+                                        return Colors.greenAccent;
+                                      } else if (index >=
+                                          topseller.length * 0.6) {
+                                        return Colors.redAccent;
+                                      } else if (index >=
+                                          topseller.length * 0.4) {
+                                        return Colors.orangeAccent;
+                                      } else if (index >=
+                                          topseller.length * 0.2) {
+                                        return Colors.purpleAccent;
+                                      } else {
+                                        return Colors.blueAccent;
+                                      }
+                                    }
+                                    return Colors.blueAccent;
+                                  },
+                                  xValueMapper: (double value, int index) {
+                                    if (index < topseller.length) {
+                                      return topseller[index].name;
+                                    }
+                                    return '';
+                                  },
+                                  yValueMapper: (double value, _) => value,
+                                ),
+                              ],
                             ),
                           ],
                         ),
+                ),
+              ),
+              Positioned(
+                top: 1185,
+                left: 10,
+                right: 10,
+                child: Container(
+                  width: MediaQuery.of(context).size.width,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.black26, width: 1),
+                  ),
+                  child: Column(
+                    children: [
+                      SizedBox(height: 20),
+                      Text(
+                        'Top Employee',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 20),
                       ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                            left: 0, right: 10, bottom: 20, top: 20),
+                        child: FutureBuilder<void>(
+                          future:
+                              !_dataFetched ? _getGraphDataEmployee() : null,
+                          builder: (context, _) {
+                            _dataFetched = true;
+                            return SfCartesianChart(
+                              primaryXAxis: CategoryAxis(
+                                majorTickLines: MajorTickLines(size: 0),
+                                labelPlacement: LabelPlacement.onTicks,
+                              ),
+                              primaryYAxis: NumericAxis(
+                                isVisible: true,
+                                numberFormat: NumberFormat.compact(),
+                              ),
+                              series: <CartesianSeries>[
+                                ColumnSeries<EmployeeGraph, String>(
+                                  color: Color.fromRGBO(52, 177, 170, 1.0),
+                                  dataSource: employeegraph,
+                                  xValueMapper: (EmployeeGraph sales, _) =>
+                                      sales.employee,
+                                  yValueMapper: (EmployeeGraph sales, _) =>
+                                      sales.total,
+                                  markerSettings: MarkerSettings(
+                                    isVisible: true,
+                                  ),
+                                  // dataLabelSettings: DataLabelSettings(
+                                  //   isVisible: _showDataLabels,
+                                  // ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      )
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-      ),
+      )),
     );
   }
 }

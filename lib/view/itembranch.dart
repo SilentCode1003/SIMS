@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:sims/model/modelinfo.dart';
 import 'dart:convert';
-import 'package:sims/repository/helper.dart';
-import 'package:sims/api/branches.dart';
+
+import '../api/branches.dart';
+import '../model/modelinfo.dart';
+import '../repository/helper.dart';
 
 class ItemsBranchSelectionBottomSheet extends StatefulWidget {
-  final Function(int, String) selectedIndexCallback;
+  final Function(String) selectedIndexCallback;
 
   const ItemsBranchSelectionBottomSheet(
       {super.key, required this.selectedIndexCallback});
@@ -30,6 +31,21 @@ class _BranchSelectionBottomSheetState
   }
 
   Future<void> _getbranches() async {
+    // Add 'All Branches' as the first item
+    setState(() {
+      branch.add(BranchesModel(
+        'all',
+        'All Branches',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+      ));
+    });
+
+    // Fetch branches data
     final response = await Branches().branches(branchid);
     if (helper.getStatusString(APIStatus.success) == response.message) {
       final jsondata = json.encode(response.result);
@@ -90,8 +106,6 @@ class _BranchSelectionBottomSheetState
                           setState(() {
                             _selectedBranch = value ?? '';
                             print(_selectedBranch);
-
-                            
                           });
                         },
                         activeColor: const Color.fromRGBO(52, 177, 170, 10),
@@ -108,7 +122,7 @@ class _BranchSelectionBottomSheetState
             children: [
               SizedBox(
                 height: 50,
-                width: 200,
+                width: 180,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -128,13 +142,13 @@ class _BranchSelectionBottomSheetState
               ),
               SizedBox(
                 height: 50,
-                width: 200,
+                width: 180,
                 child: ElevatedButton(
                   onPressed: _selectedBranch.isEmpty
                       ? null
                       : () {
                           print(_selectedBranch);
-                          widget.selectedIndexCallback(2,_selectedBranch);
+                          widget.selectedIndexCallback(_selectedBranch);
                           Navigator.of(context).pop();
                         },
                   style: ButtonStyle(

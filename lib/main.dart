@@ -1,7 +1,15 @@
 import 'dart:io';
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:sims/view/index.dart';
+import 'view/index.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sims/repository/helper.dart';
+import 'package:sims/api/login.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:async';
+import 'package:sims/view/product_update.dart';
 
 void main() async {
   runApp(const MyApp());
@@ -86,13 +94,16 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  String productname = 'all';
   bool isLoading = false;
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  Helper helper = Helper();
 
   @override
   void initState() {
     super.initState();
+    _loadRememberedCredentials();
   }
 
   bool _isPasswordObscured = true;
@@ -101,6 +112,87 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       _isPasswordObscured = !_isPasswordObscured;
     });
+  }
+
+  Future<void> _loadRememberedCredentials() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _usernameController.text = prefs.getString('username') ?? '';
+      _passwordController.text = prefs.getString('password') ?? '';
+    });
+  }
+
+  Future<void> _saveRememberedCredentials() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('username', _usernameController.text);
+    prefs.setString('password', _passwordController.text);
+  }
+
+  Future<void> _login() async {
+    String username = _usernameController.text;
+    String password = _passwordController.text;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await Login().login(username, password);
+
+      if (helper.getStatusString(APIStatus.success) == response.message) {
+        final jsonData = json.encode(response.result);
+        for (var userinfo in json.decode(jsonData)) {
+          helper.writeJsonToFile(userinfo, 'user.json');
+        }
+        _saveRememberedCredentials();
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+              builder: (_) => Index(
+                    selectedIndex: 0,
+                    productname: productname,
+                  )),
+        );
+      } else {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Access'),
+            content: const Text('Incorrect username and password'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  setState(() {
+                    isLoading = false;
+                  });
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (error) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Error'),
+          content: const Text(
+              'Failed to connect to the server. Please try again later.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                setState(() {
+                  isLoading = false;
+                });
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Future<bool> _onWillPop() async {
@@ -199,7 +291,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(left: 30, right: 30, top: 435),
+                  padding: const EdgeInsets.only(left: 30, right: 30, top: 440),
                   child: TextField(
                     obscureText: _isPasswordObscured,
                     controller: _passwordController,
@@ -231,12 +323,13 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const Index(),
-                          ),
-                        );
+                        _login();
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //     builder: (context) => const Index(),
+                        //   ),
+                        // );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromRGBO(52, 177, 170, 10),
@@ -261,17 +354,12 @@ class _LoginPageState extends State<LoginPage> {
                   padding: const EdgeInsets.only(left: 30, right: 30, top: 560),
                   child: TextButton(
                     onPressed: () {
-                      // showModalBottomSheet(
-                      //   context: context,
-                      //   shape: const RoundedRectangleBorder(
-                      //     borderRadius: BorderRadius.vertical(
-                      //       top: Radius.circular(25),
-                      //     ),
-                      //   ),
-                      //   builder: (BuildContext context) {
-                      //     return BranchSelectionBottomSheet();
-                      //   },
-                      // );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProductUpdate(),
+                        ),
+                      );
                     },
                     child: const Text(
                       'Forgot Password?',

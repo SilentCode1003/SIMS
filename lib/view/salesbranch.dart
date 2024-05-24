@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:sims/model/modelinfo.dart';
 import 'dart:convert';
-import 'package:sims/repository/helper.dart';
-import 'package:sims/api/branches.dart';
+import '../api/branches.dart';
+import '../repository/helper.dart';
+import '../api/category.dart';
 
 class SalesBranchSelectionBottomSheet extends StatefulWidget {
-  final Function(int, String) selectedIndexCallback;
+  final Function(String) selectedIndexCallback;
 
   const SalesBranchSelectionBottomSheet(
       {super.key, required this.selectedIndexCallback});
@@ -22,12 +23,32 @@ class _BranchSelectionBottomSheetState
 
   Helper helper = Helper();
   List<BranchesModel> branch = [];
+  List<CategoryModel> categories = [];
 
   @override
   void initState() {
     super.initState();
     _getbranches();
-    print('sales');
+    _getcategories();
+  }
+
+  Future<void> _getcategories() async {
+    final response = await Catergory().categories();
+    if (helper.getStatusString(APIStatus.success) == response.message) {
+      setState(() {
+        final jsondata = json.encode(response.result);
+        for (var branchesinfo in json.decode(jsondata)) {
+          CategoryModel categoriesinfos = CategoryModel(
+            branchesinfo['categorycode'].toString(),
+            branchesinfo['categoryname'],
+            branchesinfo['status'],
+            branchesinfo['createdby'],
+            branchesinfo['createddate'],
+          );
+          categories.add(categoriesinfos);
+        }
+      });
+    }
   }
 
   Future<void> _getbranches() async {
@@ -81,11 +102,11 @@ class _BranchSelectionBottomSheetState
                   ListView.builder(
                     physics: const NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
-                    itemCount: branch.length,
+                    itemCount: categories.length,
                     itemBuilder: (context, index) {
                       return RadioListTile(
-                        title: Text(branch[index].branchname),
-                        value: branch[index].branchid,
+                        title: Text(categories[index].categoryname),
+                        value: categories[index].categorycode,
                         groupValue: _selectedBranch,
                         onChanged: (String? value) {
                           setState(() {
@@ -107,7 +128,7 @@ class _BranchSelectionBottomSheetState
             children: [
               SizedBox(
                 height: 50,
-                width: 200,
+                width: 180,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -127,13 +148,13 @@ class _BranchSelectionBottomSheetState
               ),
               SizedBox(
                 height: 50,
-                width: 200,
+                width: 180,
                 child: ElevatedButton(
                   onPressed: _selectedBranch.isEmpty
                       ? null
                       : () {
                           print(_selectedBranch);
-                          widget.selectedIndexCallback(1, _selectedBranch);
+                          widget.selectedIndexCallback(_selectedBranch);
                           Navigator.of(context).pop();
                         },
                   style: ButtonStyle(

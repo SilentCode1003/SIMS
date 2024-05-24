@@ -74,7 +74,19 @@ class Helper {
       String jsonString = jsonEncode(jsnonData);
 
       await file.writeAsString(jsonString);
+    } catch (e) {
+      print(e);
+    }
+  }
 
+  Future<void> writeJsonToFile1(List jsonListData, String filePath) async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/$filePath');
+
+      String jsonString = jsonEncode(jsonListData);
+
+      await file.writeAsString(jsonString);
     } catch (e) {
       print(e);
     }

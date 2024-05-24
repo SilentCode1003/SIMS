@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 
 class Inventory {
   Future<ResponceModel> getallinventory() async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allproductAPI}');
+    final url = Uri.parse('${Config.apiUrl}${Config.allproductlist}');
     final response = await http.post(url);
 
     final responseData = json.decode(response.body);
@@ -19,64 +19,9 @@ class Inventory {
   }
 
   Future<ResponceModel> filterallinventory(String category) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allproductAPI}');
+    final url = Uri.parse('${Config.apiUrl}${Config.allproductlist}');
     final response = await http.post(url, body: {
       'category': category,
-    });
-
-    final responseData = json.decode(response.body);
-    final status = response.statusCode;
-    final message = responseData['msg'];
-    final result = responseData['data'] ?? [];
-    final description = responseData['description'] ?? "";
-
-    print('result $result');
-
-    ResponceModel data = ResponceModel(message, status, result, description);
-    return data;
-  }
-
-  Future<ResponceModel> getinventory(String branch) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allproductAPI}');
-    final response = await http.post(url, body: {
-      'branch': branch,
-    });
-
-    final responseData = json.decode(response.body);
-    final status = response.statusCode;
-    final message = responseData['msg'];
-    final result = responseData['data'] ?? [];
-    final description = responseData['description'] ?? "";
-
-    print('result $result');
-
-    ResponceModel data = ResponceModel(message, status, result, description);
-    return data;
-  }
-
-  Future<ResponceModel> filterinventory(String branch, String category) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allproductAPI}');
-    final response = await http.post(url, body: {
-      'branch': branch,
-      'category': category,
-    });
-
-    final responseData = json.decode(response.body);
-    final status = response.statusCode;
-    final message = responseData['msg'];
-    final result = responseData['data'] ?? [];
-    final description = responseData['description'] ?? "";
-
-    print('result $result');
-
-    ResponceModel data = ResponceModel(message, status, result, description);
-    return data;
-  }
-
-  Future<ResponceModel> searchinventory(String productname) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allproductAPI}');
-    final response = await http.post(url, body: {
-      'productname': productname,
     });
 
     final responseData = json.decode(response.body);
