@@ -47,7 +47,6 @@ class MontlySales {
     final description = responseData['description'] ?? "";
 
     ResponceModel data = ResponceModel(message, status, result, description);
-    print('month result: $result');
     return data;
   }
 
@@ -124,6 +123,43 @@ class MontlySales {
     final description = responseData['description'] ?? "";
 
     ResponceModel data = ResponceModel(message, status, result, description);
+
+    return data;
+  }
+
+  Future<ResponceModel> monthemployee(String daterange) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.monthemployeesales}');
+    final response = await http.post(url, body: {'daterange': daterange});
+
+    final responseData = json.decode(response.body);
+    final status = response.statusCode;
+    final message = responseData['msg'];
+    final result = responseData['data'] ?? [];
+    final description = responseData['description'] ?? "";
+
+    ResponceModel data = ResponceModel(message, status, result, description);
+
+    print('result na to: $result');
+    print('date na tos $daterange');
+
+    return data;
+  }
+
+  Future<ResponceModel> monthbyemployee(String daterange, String branch) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.monthemployeesales}');
+    final response =
+        await http.post(url, body: {'daterange': daterange, 'branch': branch});
+
+    final responseData = json.decode(response.body);
+    final status = response.statusCode;
+    final message = responseData['msg'];
+    final result = responseData['data'] ?? [];
+    final description = responseData['description'] ?? "";
+
+    ResponceModel data = ResponceModel(message, status, result, description);
+
+    print('result na to: $result');
+    print('date na to $daterange');
 
     return data;
   }

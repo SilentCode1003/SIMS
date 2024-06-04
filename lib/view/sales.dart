@@ -20,7 +20,7 @@ class _SalesState extends State<Sales> {
   DateTime Month = DateTime.now();
   dynamic TotalDaily = '';
   dynamic TotalDailyPurchase = '';
-  String selectedBranch = 'all';
+  String selectedBranch = 'All Branches';
 
   Helper helper = Helper();
   List<TotalDailySalesModel> totaldailysales = [];
@@ -83,7 +83,7 @@ class _SalesState extends State<Sales> {
       body: SingleChildScrollView(
         child: Container(
           color: Colors.white,
-          height: 1700,
+          height: 1980,
           child: Column(
             children: [
               Padding(

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:sims/model/modelinfo.dart';
 import 'dart:convert';
-import '../api/branches.dart';
-import '../repository/helper.dart';
-import '../api/category.dart';
 
-class SalesBranchSelectionBottomSheet extends StatefulWidget {
+import '../api/category.dart';
+import '../model/modelinfo.dart';
+import '../repository/helper.dart';
+
+class ItemsCategorySelectionBottomSheet extends StatefulWidget {
   final Function(String) selectedIndexCallback;
 
-  const SalesBranchSelectionBottomSheet(
+  const ItemsCategorySelectionBottomSheet(
       {super.key, required this.selectedIndexCallback});
 
   @override
@@ -17,18 +17,16 @@ class SalesBranchSelectionBottomSheet extends StatefulWidget {
 }
 
 class _BranchSelectionBottomSheetState
-    extends State<SalesBranchSelectionBottomSheet> {
+    extends State<ItemsCategorySelectionBottomSheet> {
   String _selectedBranch = '';
   String branchid = '';
 
   Helper helper = Helper();
-  List<BranchesModel> branch = [];
-  List<CategoryModel> categories = [];
+  List<CategoryModel> category = [];
 
   @override
   void initState() {
     super.initState();
-    _getbranches();
     _getcategories();
   }
 
@@ -45,31 +43,9 @@ class _BranchSelectionBottomSheetState
             branchesinfo['createdby'],
             branchesinfo['createddate'],
           );
-          categories.add(categoriesinfos);
+          category.add(categoriesinfos);
         }
       });
-    }
-  }
-
-  Future<void> _getbranches() async {
-    final response = await Branches().branches(branchid);
-    if (helper.getStatusString(APIStatus.success) == response.message) {
-      final jsondata = json.encode(response.result);
-      for (var branchesinfo in json.decode(jsondata)) {
-        setState(() {
-          BranchesModel branchesinfos = BranchesModel(
-            branchesinfo['branchid'],
-            branchesinfo['branchname'],
-            branchesinfo['tin'],
-            branchesinfo['address'],
-            branchesinfo['logo'],
-            branchesinfo['status'],
-            branchesinfo['createdby'],
-            branchesinfo['createddate'],
-          );
-          branch.add(branchesinfos);
-        });
-      }
     }
   }
 
@@ -87,7 +63,7 @@ class _BranchSelectionBottomSheetState
           Container(
             padding: const EdgeInsets.all(16),
             child: const Text(
-              'Select Category',
+              'Select Branch',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -102,11 +78,11 @@ class _BranchSelectionBottomSheetState
                   ListView.builder(
                     physics: const NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
-                    itemCount: categories.length,
+                    itemCount: category.length,
                     itemBuilder: (context, index) {
                       return RadioListTile(
-                        title: Text(categories[index].categoryname),
-                        value: categories[index].categorycode,
+                        title: Text(category[index].categoryname),
+                        value: category[index].categorycode,
                         groupValue: _selectedBranch,
                         onChanged: (String? value) {
                           setState(() {

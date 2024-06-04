@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:flutter/widgets.dart';
+import 'package:sims/view/inventory_stocks.dart';
 import 'dart:convert';
 import 'dart:io';
 import '../api/category.dart';
@@ -14,10 +15,11 @@ import 'package:sims/view/product_add.dart';
 import 'package:sims/view/inventory_addstocks.dart';
 import 'package:sims/view/product_update.dart';
 import 'package:sims/view/inventory_search.dart';
+import 'package:sims/view/notification.dart';
 
 class Item extends StatefulWidget {
-  final String productname;
-  const Item({super.key, required this.productname});
+  final String usercode;
+  const Item({super.key, required this.usercode});
 
   @override
   State<Item> createState() => _ItemState();
@@ -25,19 +27,19 @@ class Item extends StatefulWidget {
 
 class _ItemState extends State<Item> {
   bool isControllerEmpty = true;
-  String selectedInterval = 'All';
+  String selectedInterval = 'All Branches';
   String categorycode = '';
   String categoryname = '';
-  String selectedBranch = 'all';
+  String selectedBranch = 'All Branches';
   String branchid = '';
   String productid = '';
+  String productname = '';
   Helper helper = Helper();
   TextEditingController reasonController = TextEditingController();
   List<CategoryModel> categories = [];
   List<InventoryModel> iteminventory = [];
   List<InventoryModel> filteredInventory = [];
   List<ImageModel> images = [];
-  List<AllImage> allimages = [];
   Map<String, Image> imageCache = {};
 
   TextEditingController _controller = TextEditingController();
@@ -46,16 +48,7 @@ class _ItemState extends State<Item> {
   void initState() {
     super.initState();
     _getcategories();
-    print(widget.productname);
-    if (widget.productname == 'all') {
-      setState(() {
-        _getinventory();
-      });
-    } else {
-      setState(() {
-        _searchtinventory();
-      });
-    }
+    _getinventory();
   }
 
   void updateScreenState(String value) {
@@ -78,7 +71,7 @@ class _ItemState extends State<Item> {
         categories.clear();
         categories.add(CategoryModel(
           "0",
-          "All",
+          "All Category",
           "active",
           "markpogi",
           DateTime.now().toString(),
@@ -100,7 +93,6 @@ class _ItemState extends State<Item> {
   }
 
   Future<void> _getinventory() async {
-    print('lahat na');
     final response = await Inventory().getallinventory();
     if (helper.getStatusString(APIStatus.success) == response.message) {
       final jsondata = json.encode(response.result);
@@ -110,50 +102,16 @@ class _ItemState extends State<Item> {
             itemsinfo['inventoryid'].toString(),
             itemsinfo['productname'].toString(),
             itemsinfo['branchid'].toString(),
+            itemsinfo['branchname'].toString(),
             itemsinfo['quantity'].toString(),
             itemsinfo['category'].toString(),
             itemsinfo['productid'].toString(),
           );
           iteminventory.add(items);
         });
-        // await _getimage(itemsinfo['productid'].toString());
+        await _getimage(itemsinfo['productid'].toString());
       }
-      printProductIds();
     }
-  }
-
-  Future<void> _searchtinventory() async {
-    print('yung search lang');
-    final response = await Inventory().searchinventory(widget.productname);
-    if (helper.getStatusString(APIStatus.success) == response.message) {
-      final jsondata = json.encode(response.result);
-      for (var itemsinfo in json.decode(jsondata)) {
-        setState(() {
-          InventoryModel items = InventoryModel(
-            itemsinfo['inventoryid'].toString(),
-            itemsinfo['productname'].toString(),
-            itemsinfo['branchid'].toString(),
-            itemsinfo['quantity'].toString(),
-            itemsinfo['category'].toString(),
-            itemsinfo['productid'].toString(),
-          );
-          iteminventory.add(items);
-        });
-        // await _getimage(itemsinfo['productid'].toString());
-      }
-      printProductIds();
-    }
-  }
-
-  Future<void> _getproductimage(String productId) async {
-    Map<String, dynamic> productimage = await helper.readJsonToFile(productId);
-    AllImage allimage = AllImage(
-      productimage['image'],
-      productimage['productid'],
-    );
-    setState(() {
-      allimages.add(allimage);
-    });
   }
 
   Future<void> _getimage(String productId) async {
@@ -180,13 +138,6 @@ class _ItemState extends State<Item> {
     }
   }
 
-  void printProductIds() {
-    for (var item in iteminventory) {
-      productid = item.productid;
-      // _getimage();
-    }
-  }
-
   Future<void> _getfilterinventory() async {
     final response = await Inventory().filterallinventory(categoryname);
     if (helper.getStatusString(APIStatus.success) == response.message) {
@@ -197,12 +148,14 @@ class _ItemState extends State<Item> {
             itemsinfo['inventoryid'].toString(),
             itemsinfo['productname'].toString(),
             itemsinfo['branchid'].toString(),
+            itemsinfo['branchname'].toString(),
             itemsinfo['quantity'].toString(),
             itemsinfo['category'].toString(),
             itemsinfo['productid'].toString(),
           );
           iteminventory.add(items);
         });
+        await _getimage(itemsinfo['productid'].toString());
       }
     }
   }
@@ -214,15 +167,17 @@ class _ItemState extends State<Item> {
       for (var itemsinfo in json.decode(jsondata)) {
         setState(() {
           InventoryModel items = InventoryModel(
-            itemsinfo['id'].toString(),
+            itemsinfo['inventoryid'].toString(),
             itemsinfo['productname'].toString(),
-            itemsinfo['branch'].toString(),
+            itemsinfo['branchid'].toString(),
+            itemsinfo['branchname'].toString(),
             itemsinfo['quantity'].toString(),
             itemsinfo['category'].toString(),
-            itemsinfo['productimage'].toString(),
+            itemsinfo['productid'].toString(),
           );
           iteminventory.add(items);
         });
+        await _getimage(itemsinfo['productid'].toString());
       }
     }
   }
@@ -235,15 +190,17 @@ class _ItemState extends State<Item> {
       for (var itemsinfo in json.decode(jsondata)) {
         setState(() {
           InventoryModel items = InventoryModel(
-            itemsinfo['id'].toString(),
+            itemsinfo['inventoryid'].toString(),
             itemsinfo['productname'].toString(),
-            itemsinfo['branch'].toString(),
+            itemsinfo['branchid'].toString(),
+            itemsinfo['branchname'].toString(),
             itemsinfo['quantity'].toString(),
             itemsinfo['category'].toString(),
-            itemsinfo['productimage'].toString(),
+            itemsinfo['productid'].toString(),
           );
           iteminventory.add(items);
         });
+        await _getimage(itemsinfo['productid'].toString());
       }
     }
   }
@@ -259,7 +216,7 @@ class _ItemState extends State<Item> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Product Inventory',
+        title: Text('Inventory - $selectedBranch',
             style: TextStyle(color: Colors.white)),
         backgroundColor: const Color.fromRGBO(52, 177, 170, 10),
         elevation: 0,
@@ -284,7 +241,16 @@ class _ItemState extends State<Item> {
                     Icons.notifications,
                     size: 25.0,
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Inbox(
+                          usercode: widget.usercode,
+                        ),
+                      ),
+                    );
+                  },
                   color: Colors.white,
                 ),
               ),
@@ -315,7 +281,7 @@ class _ItemState extends State<Item> {
                             setState(() {
                               selectedBranch = branch;
                               iteminventory.clear();
-                              if (selectedBranch == "all") {
+                              if (selectedBranch == "All Branches") {
                                 _getinventory();
                               } else {
                                 _getbranchinventory();
@@ -354,14 +320,14 @@ class _ItemState extends State<Item> {
                                 categoryname = categories[index].categoryname;
                                 setState(() {
                                   iteminventory.clear();
-                                  if (selectedBranch == "all") {
-                                    if (categoryname == 'All') {
+                                  if (selectedBranch == "All Branches") {
+                                    if (categoryname == 'All Category') {
                                       _getinventory();
                                     } else {
                                       _getfilterinventory();
                                     }
                                   } else {
-                                    if (categoryname == 'All') {
+                                    if (categoryname == 'All Category') {
                                       _getbranchinventory();
                                     } else {
                                       _getbranchfilterinventory();
@@ -403,13 +369,6 @@ class _ItemState extends State<Item> {
               child: GestureDetector(
                 onTap: () {
                   print('search');
-                  // showModalBottomSheet(
-                  //   context: context,
-                  //   isScrollControlled: true,
-                  //   builder: (BuildContext context) {
-                  //     return Search();
-                  //   },
-                  // );
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -452,7 +411,7 @@ class _ItemState extends State<Item> {
                           child: Wrap(
                             spacing: 0,
                             children: List.generate(
-                              2,
+                              8,
                               (colIndex) {
                                 final index = rowIndex * 2 + colIndex;
                                 if (index >= iteminventory.length)
@@ -460,134 +419,142 @@ class _ItemState extends State<Item> {
                                 return Padding(
                                   padding: EdgeInsets.only(left: 10),
                                   child: GestureDetector(
-                                    onTap: () {
-                                      print(
-                                        iteminventory[index].productid,
-                                      );
-                                      showModalBottomSheet(
-                                        context: context,
-                                        isScrollControlled: true,
-                                        builder: (BuildContext context) {
-                                          return Container(
-                                            height: MediaQuery.of(context)
-                                                .size
-                                                .height,
+                                      onTap: () {
+                                        productid =
+                                            iteminventory[index].productid;
+                                        productname =
+                                            iteminventory[index].productname;
+                                        print(productid);
+                                        print(productname);
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => ItemStocks(
+                                              productid: productid,
+                                              productname: productname,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Padding(
+                                        padding: EdgeInsets.only(bottom: 10),
+                                        child: Container(
+                                            width: 182,
+                                            height: 210,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              color: Colors.white,
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.grey
+                                                      .withOpacity(0.2),
+                                                  spreadRadius: 5,
+                                                  blurRadius: 7,
+                                                  offset: Offset(0, 3),
+                                                ),
+                                              ],
+                                            ),
                                             child: Stack(
-                                              children: [],
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    },
-                                    child: Container(
-                                        width: 182,
-                                        height: 210,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          color: Colors.white,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color:
-                                                  Colors.grey.withOpacity(0.2),
-                                              spreadRadius: 5,
-                                              blurRadius: 7,
-                                              offset: Offset(0, 3),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Stack(
-                                          children: [
-                                            Positioned(
-                                              top: 0,
-                                              left: 0,
-                                              right: 0,
-                                              child: Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
-                                                  ),
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
-                                                    child: images.isNotEmpty &&
-                                                            images.length >
-                                                                index &&
-                                                            images[index]
-                                                                    .productimage !=
-                                                                null
-                                                        ? imageCache.containsKey(
-                                                                iteminventory[
-                                                                        index]
-                                                                    .productid)
-                                                            ? imageCache[
-                                                                iteminventory[
-                                                                        index]
-                                                                    .productid]
-                                                            : Image.memory(
-                                                                base64Decode(images[
-                                                                        index]
-                                                                    .productimage),
+                                              children: [
+                                                Positioned(
+                                                  top: 0,
+                                                  left: 0,
+                                                  right: 0,
+                                                  child: Container(
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10),
+                                                      ),
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10),
+                                                        child: images.isNotEmpty &&
+                                                                images.length >
+                                                                    index &&
+                                                                images[index]
+                                                                        .productimage !=
+                                                                    null
+                                                            ? imageCache.containsKey(
+                                                                    iteminventory[
+                                                                            index]
+                                                                        .productid)
+                                                                ? imageCache[
+                                                                    iteminventory[
+                                                                            index]
+                                                                        .productid]
+                                                                : Image.memory(
+                                                                    base64Decode(
+                                                                        images[index]
+                                                                            .productimage),
+                                                                    fit: BoxFit
+                                                                        .cover,
+                                                                    width: 80.0,
+                                                                    height:
+                                                                        140.0,
+                                                                  )
+                                                            : Image.asset(
+                                                                'assets/paints.png',
                                                                 fit: BoxFit
                                                                     .cover,
                                                                 width: 80.0,
                                                                 height: 140.0,
-                                                              )
-                                                        : Image.asset(
-                                                            'assets/paints.png',
-                                                            fit: BoxFit.cover,
-                                                            width: 80.0,
-                                                            height: 140.0,
+                                                              ),
+                                                      )),
+                                                ),
+                                                Positioned(
+                                                  top: 150,
+                                                  left: 0,
+                                                  child: Container(
+                                                      width: 180,
+                                                      child: Padding(
+                                                        padding:
+                                                            EdgeInsets.only(
+                                                                left: 10,
+                                                                right: 10),
+                                                        child: Text(
+                                                          iteminventory[index]
+                                                              .productname,
+                                                          style: TextStyle(
+                                                            fontSize: 18,
+                                                            color:
+                                                                Colors.black87,
                                                           ),
-                                                  )),
-                                            ),
-                                            Positioned(
-                                              top: 150,
-                                              left: 0,
-                                              child: Container(
-                                                  width: 180,
-                                                  child: Padding(
-                                                    padding: EdgeInsets.only(
-                                                        left: 10, right: 10),
-                                                    child: Text(
-                                                      iteminventory[index]
-                                                          .productname,
-                                                      style: TextStyle(
-                                                        fontSize: 18,
-                                                        color: Colors.black87,
-                                                      ),
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  )),
-                                            ),
-                                            Positioned(
-                                              top: 175,
-                                              left: 0,
-                                              child: Container(
-                                                  width: 180,
-                                                  child: Padding(
-                                                    padding: EdgeInsets.only(
-                                                        left: 10, right: 10),
-                                                    child: Text(
-                                                      'Stock: ${iteminventory[index].quantity}',
-                                                      style: TextStyle(
-                                                        fontSize: 18,
-                                                        color: Colors.black87,
-                                                      ),
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  )),
-                                            )
-                                          ],
-                                        )),
-                                  ),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      )),
+                                                ),
+                                                Positioned(
+                                                  top: 175,
+                                                  left: 0,
+                                                  child: Container(
+                                                      width: 180,
+                                                      child: Padding(
+                                                        padding:
+                                                            EdgeInsets.only(
+                                                                left: 10,
+                                                                right: 10),
+                                                        child: Text(
+                                                          'Stock: ${iteminventory[index].quantity}',
+                                                          style: TextStyle(
+                                                            fontSize: 18,
+                                                            color:
+                                                                Colors.black87,
+                                                          ),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      )),
+                                                )
+                                              ],
+                                            )),
+                                      )),
                                 );
                               },
                             ),

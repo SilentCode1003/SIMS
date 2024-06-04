@@ -5,9 +5,9 @@ import 'package:sims/model/responce.dart';
 import '../config.dart';
 import 'package:http/http.dart' as http;
 
-class Catergory {
-  Future<ResponceModel> categories() async {
-    final url = Uri.parse('${Config.apiUrl}${Config.categoryAPI}');
+class Payment {
+  Future<ResponceModel> paymnet() async {
+    final url = Uri.parse('${Config.apiUrl}${Config.paymentlsit}');
     final response = await http.get(url);
 
     final responseData = json.decode(response.body);
@@ -20,13 +20,13 @@ class Catergory {
     return data;
   }
 
-  Future<ResponceModel> savecategory(
-      String categoryname, String fullname, String employeeid) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.addcategory}');
+  Future<ResponceModel> savepayment(
+      String paymentname, String fullname, String employeeid) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.addpayment}');
     final response = await http.post(url, body: {
-      'categoryname': categoryname,
+      'paymentname': paymentname,
       'fullname': fullname,
-      'employeeid': employeeid
+      'employeeid': employeeid,
     });
 
     final responseData = json.decode(response.body);
@@ -41,13 +41,13 @@ class Catergory {
     return data;
   }
 
-  Future<ResponceModel> editcategory(
-      String categoryname, String categorycode, String employeeid) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.editcategory}');
+  Future<ResponceModel> editpayment(
+      String paymentname, String paymentcode, String employeeid) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.editpayment}');
     final response = await http.post(url, body: {
-      'categoryname': categoryname,
-      'categorycode': categorycode,
-      'employeeid': employeeid
+      'paymentname': paymentname,
+      'paymentcode': paymentcode,
+      'employeeid': employeeid,
     });
 
     final responseData = json.decode(response.body);
@@ -56,9 +56,8 @@ class Catergory {
     final result = responseData['data'] ?? [];
     final description = responseData['description'] ?? "";
 
-    print('result $message');
+    print('result $status');
 
-    ResponceModel data = ResponceModel(message, status, result, description);
-    return data;
+    return ResponceModel(message, status, result, description);
   }
 }
