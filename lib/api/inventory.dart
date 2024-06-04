@@ -13,7 +13,7 @@ class Inventory {
     final message = responseData['msg'];
     final result = responseData['data'] ?? [];
     final description = responseData['description'] ?? "";
-
+    print('result: $result');
     ResponceModel data = ResponceModel(message, status, result, description);
     return data;
   }
@@ -109,8 +109,15 @@ class Inventory {
     return data;
   }
 
-  Future<ResponceModel> save(String descriptions, String price, String category,
-      String barcode, String cost, String selectedFile, String fullname) async {
+  Future<ResponceModel> save(
+      String descriptions,
+      String price,
+      String category,
+      String barcode,
+      String cost,
+      String selectedFile,
+      String fullname,
+      String employeeid) async {
     final url = Uri.parse('${Config.apiUrl}${Config.saveproduct}');
     final response = await http.post(url, body: {
       'description': descriptions,
@@ -120,6 +127,7 @@ class Inventory {
       'cost': cost,
       'productimage': selectedFile,
       'fullname': fullname,
+      'employeeid': employeeid
     });
 
     final responseData = json.decode(response.body);
@@ -128,7 +136,7 @@ class Inventory {
     final result = responseData['data'] ?? [];
     final description = responseData['description'] ?? "";
 
-    print('result $result');
+    print('result $responseData');
 
     ResponceModel data = ResponceModel(message, status, result, description);
     return data;
@@ -146,6 +154,59 @@ class Inventory {
 
     ResponceModel data = ResponceModel(message, status, result, description);
     print('resulta: $result');
+    return data;
+  }
+
+  Future<ResponceModel> getstocks(String productid) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.getstocks}');
+    final response = await http.post(url, body: {
+      'productid': productid,
+    });
+
+    final responseData = json.decode(response.body);
+    final status = response.statusCode;
+    final message = responseData['msg'];
+    final result = responseData['data'] ?? [];
+    final description = responseData['description'] ?? "";
+
+    print('result $result');
+
+    ResponceModel data = ResponceModel(message, status, result, description);
+    return data;
+  }
+
+  Future<ResponceModel> getitem(String productid, String branchids) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.inventoryitem}');
+    final response = await http.post(url, body: {
+      'productid': productid,
+      'branch': branchids,
+    });
+
+    final responseData = json.decode(response.body);
+    final status = response.statusCode;
+    final message = responseData['msg'];
+    final result = responseData['data'] ?? [];
+    final description = responseData['description'] ?? "";
+
+    print('item results: $result');
+
+    ResponceModel data = ResponceModel(message, status, result, description);
+    return data;
+  }
+
+  Future<ResponceModel> additemstocks(String productdata) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.ainventoryddstocks}');
+    final response = await http.post(url, body: {
+      'productdata': productdata,
+    });
+
+    final responseData = json.decode(response.body);
+    final status = response.statusCode;
+    final message = responseData['msg'];
+    final result = responseData['data'] ?? [];
+    final description = responseData['description'] ?? "";
+
+    ResponceModel data = ResponceModel(message, status, result, description);
     return data;
   }
 }

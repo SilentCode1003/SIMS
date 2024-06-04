@@ -7,6 +7,9 @@ import 'package:sims/view/employee_list.dart';
 import 'package:sims/view/password.dart';
 import 'package:sims/view/payment_list.dart';
 import 'package:sims/view/product_item.dart';
+import '../model/modelinfo.dart';
+import '../repository/helper.dart';
+import 'package:sims/view/notification.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -16,6 +19,41 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
+  String employeeid = '';
+  String fullname = '';
+  String position = '';
+  String usercode = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserInfo();
+  }
+
+  Future<void> _getUserInfo() async {
+    Map<String, dynamic> userinfo = await Helper().readJsonToFile('user.json');
+    UserModel user = UserModel(
+      userinfo['employeeid'].toString(),
+      userinfo['fullname'].toString(),
+      userinfo['position'].toString(),
+      userinfo['contactinfo'].toString(),
+      userinfo['datehired'].toString(),
+      userinfo['usercode'].toString(),
+      userinfo['accesstype'].toString(),
+      userinfo['positiontype'].toString(),
+      userinfo['status'].toString(),
+    );
+
+    setState(() {
+      employeeid = user.employeeid;
+      fullname = user.fullname;
+      position = user.position;
+      usercode = user.usercode;
+
+      print('usercode: $usercode');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,7 +83,16 @@ class _SettingsState extends State<Settings> {
                     Icons.notifications,
                     size: 25.0,
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Inbox(
+                          usercode: usercode,
+                        ),
+                      ),
+                    );
+                  },
                   color: Colors.white,
                 ),
               ),
@@ -75,7 +122,7 @@ class _SettingsState extends State<Settings> {
               top: 30,
               left: 90,
               child: Text(
-                'Juan Delacruz',
+                fullname,
                 style: TextStyle(
                   fontSize: 20.0,
                   color: Colors.black,
@@ -123,7 +170,10 @@ class _SettingsState extends State<Settings> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ProductList(),
+                      builder: (context) => ProductList(
+                        fullname: fullname,
+                        employeeid: employeeid,
+                      ),
                     ),
                   );
                 },
@@ -182,7 +232,10 @@ class _SettingsState extends State<Settings> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => Employee(),
+                      builder: (context) => Employee(
+                        fullname: fullname,
+                        employeeid: employeeid,
+                      ),
                     ),
                   );
                 },
@@ -241,7 +294,10 @@ class _SettingsState extends State<Settings> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => Branch(),
+                      builder: (context) => Branch(
+                        employeeid: employeeid,
+                        fullname: fullname,
+                      ),
                     ),
                   );
                 },
@@ -300,7 +356,10 @@ class _SettingsState extends State<Settings> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CategoryList(),
+                      builder: (context) => CategoryList(
+                        fullname: fullname,
+                        employeeid: employeeid,
+                      ),
                     ),
                   );
                 },
@@ -323,7 +382,7 @@ class _SettingsState extends State<Settings> {
                           child: Padding(
                             padding: const EdgeInsets.all(5.0),
                             child: Icon(
-                              Icons.payment_outlined,
+                              Icons.auto_awesome_mosaic_outlined,
                               color: Color.fromRGBO(52, 177, 170, 10),
                               size: 40,
                             ),
@@ -359,7 +418,10 @@ class _SettingsState extends State<Settings> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PaymentMethod(),
+                      builder: (context) => PaymentMethod(
+                        fullname: fullname,
+                        employeeid: employeeid,
+                      ),
                     ),
                   );
                 },
@@ -418,7 +480,10 @@ class _SettingsState extends State<Settings> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ChangePassword(),
+                      builder: (context) => ChangePassword(
+                        usercode: usercode,
+                        employeeid: employeeid,
+                      ),
                     ),
                   );
                 },

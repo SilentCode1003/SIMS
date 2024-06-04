@@ -2,21 +2,42 @@ import 'dart:io';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'view/index.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sims/repository/helper.dart';
 import 'package:sims/api/login.dart';
 import 'dart:convert';
-import 'dart:io';
-import 'dart:async';
-import 'package:sims/view/product_update.dart';
+import 'package:sims/model/modelinfo.dart';
 
 void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  String domain = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _getDomain();
+  }
+
+  Future<void> _getDomain() async {
+    Map<String, dynamic> userinfo =
+        await Helper().readJsonToFile('server.json');
+    DomainModel user = DomainModel(
+      userinfo['domain'].toString(),
+    );
+    setState(() {
+      domain = user.domain;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +48,7 @@ class MyApp extends StatelessWidget {
         primaryColor: Colors.white,
         useMaterial3: false,
       ),
-      home: const OpeningPage(),
+      home: domain.isEmpty ? const DomainPage() : const OpeningPage(),
       routes: {'/logout': ((context) => const LoginPage())},
     );
   }
@@ -86,6 +107,158 @@ class _OpeningPageState extends State<OpeningPage> {
   }
 }
 
+class DomainPage extends StatefulWidget {
+  const DomainPage({super.key});
+
+  @override
+  _DomainPage createState() => _DomainPage();
+}
+
+class _DomainPage extends State<DomainPage> {
+  bool isLoading = false;
+  final TextEditingController _DomainController = TextEditingController();
+  Helper helper = Helper();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<void> _domain(BuildContext context) async {
+    String domain = _DomainController.text;
+    try {
+      await helper.writeJsonToFile({'domain': domain}, 'server.json');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Domain saved successfully!'),
+        ),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OpeningPage(),
+        ),
+      );
+    } catch (e) {
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save domain!'),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        height: MediaQuery.of(context).size.height,
+        color: Colors.white,
+        child: SingleChildScrollView(
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            color: Colors.white,
+            child: Stack(
+              alignment: Alignment.topCenter,
+              children: [
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  color: const Color.fromRGBO(52, 177, 170, 10),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 75.0),
+                          child: ClipRRect(
+                            child: Image.asset(
+                              'assets/file.png',
+                              width: 150,
+                              height: 150,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 100.0),
+                    ],
+                  ),
+                ),
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  margin: const EdgeInsets.only(top: 280.0),
+                  height: 50,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30.0),
+                      topRight: Radius.circular(30.0),
+                    ),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(left: 30, right: 30, top: 300),
+                  child: Text(
+                    'Lon in to your domain',
+                    style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromRGBO(52, 177, 170, 10)),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 30, right: 30, top: 350),
+                  child: TextField(
+                    controller: _DomainController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Domain',
+                      hintText: 'Enter Domain',
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 30, right: 30, top: 420),
+                  child: Container(
+                    height: 50,
+                    width: MediaQuery.of(context).size.width,
+                    decoration: BoxDecoration(
+                      color: const Color.fromRGBO(52, 177, 170, 10),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        _domain(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromRGBO(52, 177, 170, 10),
+                      ),
+                      child: isLoading
+                          ? const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(color: Colors.white),
+                                SizedBox(width: 10),
+                              ],
+                            )
+                          : const Text(
+                              'Enter',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 22),
+                            ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -94,7 +267,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  String productname = 'all';
   bool isLoading = false;
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -149,7 +321,6 @@ class _LoginPageState extends State<LoginPage> {
           MaterialPageRoute(
               builder: (_) => Index(
                     selectedIndex: 0,
-                    productname: productname,
                   )),
         );
       } else {
@@ -357,7 +528,7 @@ class _LoginPageState extends State<LoginPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ProductUpdate(),
+                          builder: (context) => DomainPage(),
                         ),
                       );
                     },

@@ -3,17 +3,15 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:badges/badges.dart' as badges;
-import 'package:flutter/widgets.dart';
+import 'package:sims/view/notification.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:flutter_multi_formatter/formatters/formatter_utils.dart';
 import '../model/modelinfo.dart';
 import '../repository/helper.dart';
 import 'package:sims/view/itembranch.dart';
 import 'package:sims/api/home.dart';
-import 'package:sims/api/inventory.dart';
-import 'dart:convert';
-import 'dart:io';
 import 'dart:async';
+
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -23,12 +21,16 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  String selectedBranch = 'all';
+  String selectedBranch = 'All Branches';
   dynamic GrossSales = '';
   dynamic Discounts = '';
   dynamic NetSales = '';
   dynamic Refunds = '';
   dynamic GrossProfit = '';
+  String employeeid = '';
+  String fullname = '';
+  String position = '';
+  String usercode = '';
   DateTime year = DateTime.now();
   bool _dataFetched = false;
   Helper helper = Helper();
@@ -37,13 +39,13 @@ class _HomeState extends State<Home> {
   List<TotalItemsModel> totaldailyitems = [];
   List<Topseller> topseller = [];
   List<double> _dataSource = [];
-  List<AllImage> allimage = [];
 
   @override
   void initState() {
     super.initState();
     // _getimage();
-    if (selectedBranch == 'all') {
+    _getUserInfo();
+    if (selectedBranch == 'All Branches') {
       _getallweeksales();
       _getalltopseller();
       _getallyeargraphemployee();
@@ -56,23 +58,27 @@ class _HomeState extends State<Home> {
     }
   }
 
-  Future<void> _getimage() async {
-    print('gumagana naman to');
-    final response = await Inventory().getallimage();
-    if (helper.getStatusString(APIStatus.success) == response.message) {
-      final jsondata = json.encode(response.result);
-      for (var imageinfo in json.decode(jsondata)) {
-        setState(() {
-          AllImage images = AllImage.fromJson(imageinfo);
-          allimage.add(images);
-        });
-      }
-      // After adding all images, save to JSON file
-      Map<String, dynamic> jsonData = {
-        'images': allimage.map((image) => image.toJson()).toList(),
-      };
-      await helper.writeJsonToFile(jsonData, 'image.json');
-    }
+  Future<void> _getUserInfo() async {
+    Map<String, dynamic> userinfo = await Helper().readJsonToFile('user.json');
+    UserModel user = UserModel(
+      userinfo['employeeid'].toString(),
+      userinfo['fullname'].toString(),
+      userinfo['position'].toString(),
+      userinfo['contactinfo'].toString(),
+      userinfo['datehired'].toString(),
+      userinfo['usercode'].toString(),
+      userinfo['accesstype'].toString(),
+      userinfo['positiontype'].toString(),
+      userinfo['status'].toString(),
+    );
+
+    setState(() {
+      employeeid = user.employeeid;
+      fullname = user.fullname;
+      position = user.position;
+      usercode = user.usercode;
+      print('fullname: $fullname');
+    });
   }
 
   Future<void> _getallweeksales() async {
@@ -127,7 +133,7 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> _getGraphData() async {
-    if (selectedBranch == 'all') {
+    if (selectedBranch == 'All Branches') {
       await _getallyeargraph();
     } else {
       await _getallyeargraph();
@@ -212,7 +218,7 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> _getGraphDataEmployee() async {
-    if (selectedBranch == 'all') {
+    if (selectedBranch == 'All Branches') {
       await _getallyeargraphemployee();
     } else {
       await _getbyyeargraphemployee();
@@ -328,7 +334,7 @@ class _HomeState extends State<Home> {
           body: SingleChildScrollView(
         child: Container(
           color: Colors.white,
-          height: 1560,
+          height: 1670,
           child: Stack(
             children: [
               Positioned(
@@ -373,7 +379,7 @@ class _HomeState extends State<Home> {
                 top: 87,
                 left: 90,
                 child: Text(
-                  "Juan Dela Cruz",
+                  fullname,
                   style: TextStyle(
                     fontSize: 20.0,
                     fontWeight: FontWeight.normal,
@@ -407,7 +413,16 @@ class _HomeState extends State<Home> {
                           Icons.notifications,
                           size: 25.0,
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Inbox(
+                                usercode: usercode,
+                              ),
+                            ),
+                          );
+                        },
                         color: Colors.white,
                       ),
                     ),
@@ -742,6 +757,7 @@ class _HomeState extends State<Home> {
                 right: 10,
                 child: Container(
                   width: MediaQuery.of(context).size.width,
+                  height: 421,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: Colors.black26, width: 1),
@@ -756,11 +772,20 @@ class _HomeState extends State<Home> {
                       ),
                       Padding(
                         padding: EdgeInsets.only(
-                            left: 0, right: 10, bottom: 20, top: 20),
+                            left: 20, right: 20, top: 10, bottom: 0),
+                        child: Divider(
+                          thickness: 1,
+                          color: Colors.black26,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                            left: 0, right: 10, bottom: 20, top: 10),
                         child: FutureBuilder<void>(
                           future: !_dataFetched ? _getGraphData() : null,
                           builder: (context, _) {
                             _dataFetched = true;
+                            print('SalesGraph datas: $salesgraph');
                             return SfCartesianChart(
                               primaryXAxis: CategoryAxis(
                                 majorTickLines: MajorTickLines(size: 0),
@@ -795,32 +820,41 @@ class _HomeState extends State<Home> {
                 ),
               ),
               Positioned(
-                top: 775,
+                top: 800,
                 left: 10,
                 right: 10,
                 child: Container(
                   width: MediaQuery.of(context).size.width,
-                  height: 390,
+                  height: 410,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: Colors.black26, width: 1),
                   ),
-                  child: topseller.isEmpty
-                      ? Center(
-                          child: Text(
-                            'No data found',
-                            style: TextStyle(fontSize: 20),
-                          ),
-                        )
-                      : Column(
-                          children: [
-                            SizedBox(height: 20),
-                            Text(
-                              'Top Sellers',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20),
-                            ),
-                            SfCircularChart(
+                  child: Column(
+                    children: [
+                      SizedBox(height: 20),
+                      Text(
+                        'Top Sellers',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 20),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                            left: 20, right: 20, top: 10, bottom: 0),
+                        child: Divider(
+                          thickness: 1,
+                          color: Colors.black26,
+                        ),
+                      ),
+                      topseller.isEmpty
+                          ? Padding(
+                              padding: EdgeInsets.only(top: 130),
+                              child: Text(
+                                'No data found',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            )
+                          : SfCircularChart(
                               legend: Legend(
                                 isVisible: true,
                                 position: LegendPosition.bottom,
@@ -866,15 +900,16 @@ class _HomeState extends State<Home> {
                                 ),
                               ],
                             ),
-                          ],
-                        ),
+                    ],
+                  ),
                 ),
               ),
               Positioned(
-                top: 1185,
+                top: 1237,
                 left: 10,
                 right: 10,
                 child: Container(
+                  height: 421,
                   width: MediaQuery.of(context).size.width,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
@@ -890,41 +925,61 @@ class _HomeState extends State<Home> {
                       ),
                       Padding(
                         padding: EdgeInsets.only(
-                            left: 0, right: 10, bottom: 20, top: 20),
-                        child: FutureBuilder<void>(
-                          future:
-                              !_dataFetched ? _getGraphDataEmployee() : null,
-                          builder: (context, _) {
-                            _dataFetched = true;
-                            return SfCartesianChart(
-                              primaryXAxis: CategoryAxis(
-                                majorTickLines: MajorTickLines(size: 0),
-                                labelPlacement: LabelPlacement.onTicks,
-                              ),
-                              primaryYAxis: NumericAxis(
-                                isVisible: true,
-                                numberFormat: NumberFormat.compact(),
-                              ),
-                              series: <CartesianSeries>[
-                                ColumnSeries<EmployeeGraph, String>(
-                                  color: Color.fromRGBO(52, 177, 170, 1.0),
-                                  dataSource: employeegraph,
-                                  xValueMapper: (EmployeeGraph sales, _) =>
-                                      sales.employee,
-                                  yValueMapper: (EmployeeGraph sales, _) =>
-                                      sales.total,
-                                  markerSettings: MarkerSettings(
-                                    isVisible: true,
-                                  ),
-                                  // dataLabelSettings: DataLabelSettings(
-                                  //   isVisible: _showDataLabels,
-                                  // ),
-                                ),
-                              ],
-                            );
-                          },
+                            left: 20, right: 20, top: 10, bottom: 0),
+                        child: Divider(
+                          thickness: 1,
+                          color: Colors.black26,
                         ),
-                      )
+                      ),
+                      employeegraph.isEmpty
+                          ? Padding(
+                              padding: EdgeInsets.only(top: 130),
+                              child: Text(
+                                'No data found',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            )
+                          : Padding(
+                              padding: EdgeInsets.only(
+                                  left: 0, right: 10, bottom: 20, top: 10),
+                              child: FutureBuilder<void>(
+                                future: !_dataFetched
+                                    ? _getGraphDataEmployee()
+                                    : null,
+                                builder: (context, _) {
+                                  _dataFetched = true;
+                                  return SfCartesianChart(
+                                    primaryXAxis: CategoryAxis(
+                                      majorTickLines: MajorTickLines(size: 0),
+                                      labelPlacement: LabelPlacement.onTicks,
+                                    ),
+                                    primaryYAxis: NumericAxis(
+                                      isVisible: true,
+                                      numberFormat: NumberFormat.compact(),
+                                    ),
+                                    series: <CartesianSeries>[
+                                      ColumnSeries<EmployeeGraph, String>(
+                                        color:
+                                            Color.fromRGBO(52, 177, 170, 1.0),
+                                        dataSource: employeegraph,
+                                        xValueMapper:
+                                            (EmployeeGraph sales, _) =>
+                                                sales.employee,
+                                        yValueMapper:
+                                            (EmployeeGraph sales, _) =>
+                                                sales.total,
+                                        markerSettings: MarkerSettings(
+                                          isVisible: true,
+                                        ),
+                                        // dataLabelSettings: DataLabelSettings(
+                                        //   isVisible: _showDataLabels,
+                                        // ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            )
                     ],
                   ),
                 ),

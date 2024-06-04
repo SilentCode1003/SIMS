@@ -34,7 +34,7 @@ class _BranchSelectionBottomSheetState
     // Add 'All Branches' as the first item
     setState(() {
       branch.add(BranchesModel(
-        'all',
+        'All Branches',
         'All Branches',
         '',
         '',

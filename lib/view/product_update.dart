@@ -4,9 +4,17 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:sims/view/salesbranch.dart';
 import 'package:file_picker/file_picker.dart';
+import '../model/modelinfo.dart';
+import '../repository/helper.dart';
+import '../api/product.dart';
+import 'package:art_sweetalert/art_sweetalert.dart';
+import '../api/category.dart';
 
 class ProductUpdate extends StatefulWidget {
-  const ProductUpdate({super.key});
+  final String productid;
+  final String employeeid;
+  const ProductUpdate(
+      {super.key, required this.productid, required this.employeeid});
 
   @override
   State<ProductUpdate> createState() => _ProductState();
@@ -15,13 +23,152 @@ class ProductUpdate extends StatefulWidget {
 class _ProductState extends State<ProductUpdate> {
   TextEditingController Description = TextEditingController();
   TextEditingController Price = TextEditingController();
-  TextEditingController Category = TextEditingController();
+  TextEditingController CategoryName = TextEditingController();
+  TextEditingController CategoryCode = TextEditingController();
   TextEditingController Barcode = TextEditingController();
   TextEditingController Cost = TextEditingController();
   String? selectedFile;
   String selectedBranch = '';
   String fullname = 'Joseph Orencio';
+  Helper helper = Helper();
+  List<ProductModel> productlist = [];
+  List<ImageModel> images = [];
+  List<CategoryModel> categories = [];
+  Map<String, Image> imageCache = {};
   final CurrencyInputFormatter _currencyFormatter = CurrencyInputFormatter();
+
+  @override
+  void initState() {
+    super.initState();
+    _getinventory();
+  }
+
+  Future<void> _edit() async {
+    String descriptions = Description.text;
+    String category = CategoryCode.text;
+    String barcode = Barcode.text;
+    String cost = Cost.text;
+
+    try {
+      final response = await Inventory().editproduct(
+          widget.productid,
+          descriptions,
+          selectedFile!,
+          barcode,
+          category,
+          cost,
+          widget.employeeid);
+
+      if (response.status == 200) {
+        ArtSweetAlert.show(
+          context: context,
+          artDialogArgs: ArtDialogArgs(
+            type: ArtSweetAlertType.success,
+            title: "Success",
+          ),
+        ).then((_) {
+          Navigator.of(context).pop();
+        });
+      } else {
+        ArtSweetAlert.show(
+          context: context,
+          artDialogArgs: ArtDialogArgs(
+            type: ArtSweetAlertType.danger,
+            title: "Error",
+            text: (response.message),
+          ),
+        ).then((_) {
+          Navigator.of(context).pop();
+        });
+      }
+    } catch (e) {
+      ArtSweetAlert.show(
+        context: context,
+        artDialogArgs: ArtDialogArgs(
+          type: ArtSweetAlertType.danger,
+          title: "Error",
+          text: "An error occurred",
+        ),
+      ).then((_) {
+        Navigator.of(context).pop();
+      });
+    }
+  }
+
+  Future<void> _getcategories() async {
+    final response = await Catergory().categories();
+    if (helper.getStatusString(APIStatus.success) == response.message) {
+      setState(() {
+        final jsondata = json.encode(response.result);
+        for (var branchesinfo in json.decode(jsondata)) {
+          CategoryModel categoriesinfos = CategoryModel(
+            branchesinfo['categorycode'].toString(),
+            branchesinfo['categoryname'],
+            branchesinfo['status'],
+            branchesinfo['createdby'],
+            branchesinfo['createddate'],
+          );
+          categories.add(categoriesinfos);
+        }
+      });
+    }
+  }
+
+  Future<void> _getinventory() async {
+    final response = await Inventory().getproductinventory(widget.productid);
+    if (helper.getStatusString(APIStatus.success) == response.message) {
+      final jsondata = json.encode(response.result);
+      int index = 0;
+      for (var itemsinfo in json.decode(jsondata)) {
+        setState(() {
+          ProductModel items = ProductModel(
+            itemsinfo['productid'].toString(),
+            itemsinfo['description'].toString(),
+            itemsinfo['price'].toString(),
+            itemsinfo['category'].toString(),
+            itemsinfo['categorycode'].toString(),
+            itemsinfo['cost'].toString(),
+            itemsinfo['barcode'].toString(),
+            itemsinfo['status'].toString(),
+          );
+          productlist.add(items);
+          Description.text = productlist[index].description;
+          Price.text = productlist[index].price;
+          CategoryName.text = productlist[index].category;
+          CategoryCode.text = productlist[index].categorycode;
+          Barcode.text = productlist[index].barcode;
+          Cost.text = productlist[index].cost;
+          index++;
+        });
+        await _getimage(itemsinfo['productid'].toString());
+      }
+    }
+  }
+
+  Future<void> _getimage(String productId) async {
+    if (imageCache.containsKey(productId)) {
+      return;
+    }
+    final response = await Inventory().getimage(productId);
+    if (helper.getStatusString(APIStatus.success) == response.message) {
+      final jsondata = json.encode(response.result);
+      for (var imageinfo in json.decode(jsondata)) {
+        setState(() {
+          ImageModel image = ImageModel(
+            imageinfo['productimage'].toString(),
+          );
+          images.add(image);
+          selectedFile = image.productimage;
+          imageCache[productId] = Image.memory(
+            base64Decode(image.productimage),
+            fit: BoxFit.cover,
+            width: 80.0,
+            height: 140.0,
+          );
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -349,7 +496,7 @@ class _ProductState extends State<ProductUpdate> {
                         selectedIndexCallback: (String branch) {
                           setState(() {
                             selectedBranch = branch;
-                            Category.text = selectedBranch;
+                            CategoryCode.text = selectedBranch;
                             print('ito na nga $selectedBranch');
                           });
                         },
@@ -358,7 +505,7 @@ class _ProductState extends State<ProductUpdate> {
                   );
                 },
                 child: TextField(
-                  controller: Category,
+                  controller: CategoryCode,
                   enabled: false,
                   decoration: InputDecoration(
                     border: UnderlineInputBorder(
@@ -601,7 +748,9 @@ class _ProductState extends State<ProductUpdate> {
                     height: 50,
                     width: 180,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        _edit();
+                      },
                       style: ButtonStyle(
                         backgroundColor:
                             MaterialStateProperty.all<Color>(Colors.white),
