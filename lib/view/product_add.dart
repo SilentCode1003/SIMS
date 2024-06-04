@@ -8,7 +8,10 @@ import 'package:art_sweetalert/art_sweetalert.dart';
 import 'package:sims/api/inventory.dart';
 
 class AddProduct extends StatefulWidget {
-  const AddProduct({super.key});
+  final String fullname;
+  final String employeeid;
+  const AddProduct(
+      {super.key, required this.fullname, required this.employeeid});
 
   @override
   State<AddProduct> createState() => _AddProductState();
@@ -42,7 +45,7 @@ class _AddProductState extends State<AddProduct> {
 
     try {
       final response = await Inventory().save(descriptions, price, category,
-          barcode, cost, selectedFile!, fullname);
+          barcode, cost, selectedFile!, widget.fullname, widget.employeeid);
 
       if (response.status == 200) {
         ArtSweetAlert.show(
@@ -641,6 +644,7 @@ class _AddProductState extends State<AddProduct> {
                 child: ElevatedButton(
                   onPressed: () {
                     _save();
+                    print('save');
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(

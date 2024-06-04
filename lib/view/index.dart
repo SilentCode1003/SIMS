@@ -4,12 +4,13 @@ import 'home.dart';
 import 'inventory_item.dart';
 import 'sales.dart';
 import 'settings.dart';
+import '../repository/helper.dart';
+import '../model/modelinfo.dart';
 
 class Index extends StatefulWidget {
   final int selectedIndex;
-  final String productname;
 
-  Index({required this.selectedIndex, required this.productname});
+  Index({required this.selectedIndex});
 
   @override
   _IndexState createState() => _IndexState();
@@ -18,11 +19,41 @@ class Index extends StatefulWidget {
 class _IndexState extends State<Index> {
   int _selectedIndex = 0;
   String branch = '';
+  String employeeid = '';
+  String fullname = '';
+  String position = '';
+  String usercode = '';
 
   @override
   void initState() {
     super.initState();
     _selectedIndex = widget.selectedIndex;
+    _getUserInfo();
+    print(usercode);
+  }
+
+  Future<void> _getUserInfo() async {
+    Map<String, dynamic> userinfo = await Helper().readJsonToFile('user.json');
+    UserModel user = UserModel(
+      userinfo['employeeid'].toString(),
+      userinfo['fullname'].toString(),
+      userinfo['position'].toString(),
+      userinfo['contactinfo'].toString(),
+      userinfo['datehired'].toString(),
+      userinfo['usercode'].toString(),
+      userinfo['accesstype'].toString(),
+      userinfo['positiontype'].toString(),
+      userinfo['status'].toString(),
+    );
+
+    setState(() {
+      employeeid = user.employeeid;
+      fullname = user.fullname;
+      position = user.position;
+      usercode = user.usercode;
+
+      print('usercode: $usercode');
+    });
   }
 
   @override
@@ -47,7 +78,9 @@ class _IndexState extends State<Index> {
           date: DateTime.now(),
         );
       case 2:
-        return Item(productname: widget.productname);
+        return Item(
+          usercode: usercode,
+        );
       case 3:
         return const Settings();
       default:

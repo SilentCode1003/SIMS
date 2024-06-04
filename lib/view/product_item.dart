@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:badges/badges.dart' as badges;
@@ -16,9 +18,10 @@ import 'package:sims/view/product_update.dart';
 import 'package:sims/view/inventory_search.dart';
 
 class ProductList extends StatefulWidget {
-  const ProductList({
-    super.key,
-  });
+  final String fullname;
+  final String employeeid;
+  const ProductList(
+      {super.key, required this.fullname, required this.employeeid});
 
   @override
   State<ProductList> createState() => _ProductListState();
@@ -37,7 +40,6 @@ class _ProductListState extends State<ProductList> {
   List<CategoryModel> categories = [];
   List<ProductModel> productlist = [];
   List<ImageModel> images = [];
-  List<AllImage> allimages = [];
   Map<String, Image> imageCache = {};
 
   TextEditingController _controller = TextEditingController();
@@ -101,6 +103,7 @@ class _ProductListState extends State<ProductList> {
             itemsinfo['description'].toString(),
             itemsinfo['price'].toString(),
             itemsinfo['category'].toString(),
+            itemsinfo['categorycode'].toString(),
             itemsinfo['cost'].toString(),
             itemsinfo['barcode'].toString(),
             itemsinfo['status'].toString(),
@@ -111,17 +114,6 @@ class _ProductListState extends State<ProductList> {
       }
       printProductIds();
     }
-  }
-
-  Future<void> _getproductimage(String productId) async {
-    Map<String, dynamic> productimage = await helper.readJsonToFile(productId);
-    AllImage allimage = AllImage(
-      productimage['image'],
-      productimage['productid'],
-    );
-    setState(() {
-      allimages.add(allimage);
-    });
   }
 
   Future<void> _getimage(String productId) async {
@@ -166,6 +158,7 @@ class _ProductListState extends State<ProductList> {
             itemsinfo['description'].toString(),
             itemsinfo['price'].toString(),
             itemsinfo['category'].toString(),
+            itemsinfo['categorycode'].toString(),
             itemsinfo['cost'].toString(),
             itemsinfo['barcode'].toString(),
             itemsinfo['status'].toString(),
@@ -353,10 +346,14 @@ class _ProductListState extends State<ProductList> {
                                       print(productlist[index].cost);
                                       print(productlist[index].barcode);
                                       print(productlist[index].status);
+                                      productid = productlist[index].productid;
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => ProductUpdate(),
+                                          builder: (context) => ProductUpdate(
+                                            productid: productid,
+                                            employeeid: widget.employeeid,
+                                          ),
                                         ),
                                       );
                                     },
@@ -491,7 +488,10 @@ class _ProductListState extends State<ProductList> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AddProduct(),
+                    builder: (context) => AddProduct(
+                      fullname: widget.fullname,
+                      employeeid: widget.employeeid,
+                    ),
                   ),
                 );
               },

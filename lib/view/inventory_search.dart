@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sims/view/index.dart';
 import 'package:sims/view/inventory_item.dart';
+import 'package:sims/view/inventory_stocks.dart';
 import '../api/inventory.dart';
 import '../model/modelinfo.dart';
 import '../repository/helper.dart';
@@ -15,6 +16,7 @@ class Search extends StatefulWidget {
 
 class _SearchtState extends State<Search> {
   String productname = '';
+  String productid = '';
   bool isControllerEmpty = true;
   TextEditingController _controller = TextEditingController();
   Helper helper = Helper();
@@ -36,6 +38,7 @@ class _SearchtState extends State<Search> {
           itemsinfo['inventoryid'].toString(),
           itemsinfo['productname'].toString(),
           itemsinfo['branchid'].toString(),
+          itemsinfo['branchname'].toString(),
           itemsinfo['quantity'].toString(),
           itemsinfo['category'].toString(),
           itemsinfo['productid'].toString(),
@@ -66,86 +69,6 @@ class _SearchtState extends State<Search> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(71.0),
-        child: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          flexibleSpace: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              Container(
-                color: Colors.white,
-                height: 120,
-                width: double.infinity,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 45.0),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.arrow_back),
-                        onPressed: () {
-                          _controller.clear();
-                          Navigator.pop(context);
-                          setState(() {
-                            isControllerEmpty = true;
-                            filteredInventory = iteminventory;
-                          });
-                        },
-                        color: Colors.black,
-                        iconSize: 25,
-                      ),
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.84,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: Color.fromRGBO(52, 177, 170, 1),
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 10),
-                          child: TextField(
-                            controller: _controller,
-                            onChanged: (value) {
-                              updateScreenState(value);
-                            },
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: 'Search Product',
-                            ),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _controller.clear();
-                  isControllerEmpty = true;
-                  filteredInventory = iteminventory;
-                });
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(right: 25, top: 10),
-                child: Icon(
-                  Icons.clear,
-                  size: 20,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
@@ -153,14 +76,14 @@ class _SearchtState extends State<Search> {
           children: [
             isControllerEmpty
                 ? Positioned(
-                    top: 0,
+                    top: 70,
                     left: 0,
                     right: 0,
                     child: Container(
                       height: MediaQuery.of(context).size.height,
                       color: Colors.white,
                       child: ListView.builder(
-                        itemCount: 10,
+                        itemCount: iteminventory.length,
                         itemBuilder: (BuildContext context, int index) {
                           return Container(
                             height: 50,
@@ -171,7 +94,7 @@ class _SearchtState extends State<Search> {
                                   top: 10,
                                   left: 15,
                                   child: Icon(
-                                    Icons.access_time,
+                                    Icons.search,
                                     size: 30.0,
                                     color: Colors.black,
                                   ),
@@ -180,7 +103,7 @@ class _SearchtState extends State<Search> {
                                   top: 15,
                                   left: 60,
                                   child: Text(
-                                    'Color',
+                                    iteminventory[index].productname,
                                     style: TextStyle(fontSize: 17),
                                   ),
                                 ),
@@ -203,7 +126,7 @@ class _SearchtState extends State<Search> {
                       ),
                     ))
                 : Positioned(
-                    top: 0,
+                    top: 70,
                     left: 0,
                     right: 0,
                     child: Container(
@@ -216,12 +139,14 @@ class _SearchtState extends State<Search> {
                             onTap: () {
                               String productName =
                                   filteredInventory[index].productname;
+                              String productid =
+                                  filteredInventory[index].productid;
                               print(productName);
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => Index(
-                                    selectedIndex: 2,
+                                  builder: (context) => ItemStocks(
+                                    productid: productid,
                                     productname: productName,
                                   ),
                                 ),
@@ -272,6 +197,67 @@ class _SearchtState extends State<Search> {
                       ),
                     ),
                   ),
+            Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 110,
+                  color: Colors.white,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(top: 50),
+                        child: IconButton(
+                          icon: Icon(Icons.arrow_back),
+                          onPressed: () {
+                            _controller.clear();
+                            Navigator.pop(context);
+                            setState(() {});
+                          },
+                          color: Colors.black,
+                          iconSize: 25,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(top: 50),
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.84,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: Color.fromRGBO(52, 177, 170, 1),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 10),
+                            child: TextField(
+                              controller: _controller,
+                              onChanged: (value) {
+                                updateScreenState(value);
+                              },
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                hintText: 'Search Product',
+                                suffixIcon: IconButton(
+                                  icon: Icon(Icons.clear),
+                                  onPressed: () {
+                                    setState(() {
+                                      _controller.clear();
+                                      isControllerEmpty = true;
+                                      filteredInventory = iteminventory;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                )),
           ],
         ),
       ),
