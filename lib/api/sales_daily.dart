@@ -126,4 +126,41 @@ class DailySales {
 
     return data;
   }
+
+  Future<ResponceModel> dailyemployee(String daterange) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.dailyemployeesales}');
+    final response = await http.post(url, body: {'date': daterange});
+
+    final responseData = json.decode(response.body);
+    final status = response.statusCode;
+    final message = responseData['msg'];
+    final result = responseData['data'] ?? [];
+    final description = responseData['description'] ?? "";
+
+    ResponceModel data = ResponceModel(message, status, result, description);
+
+    print('result na to: $result');
+    print('date na to $daterange');
+
+    return data;
+  }
+
+  Future<ResponceModel> dailybyemployee(String daterange, String branch) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.dailyemployeesales}');
+    final response =
+        await http.post(url, body: {'date': daterange, 'branch': branch});
+
+    final responseData = json.decode(response.body);
+    final status = response.statusCode;
+    final message = responseData['msg'];
+    final result = responseData['data'] ?? [];
+    final description = responseData['description'] ?? "";
+
+    ResponceModel data = ResponceModel(message, status, result, description);
+
+    print('result na to: $result');
+    print('date na to $daterange');
+
+    return data;
+  }
 }

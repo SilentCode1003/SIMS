@@ -52,17 +52,19 @@ class _DailyState extends State<Daily> {
     super.initState();
     print(widget.date);
     print(widget.branchid);
-    if (widget.branchid == 'all') {
+    if (widget.branchid == 'All Branches') {
       _getalldaysales();
       _getalldaygraph();
       _getalltopseller();
       _getallitems();
+      _getallemployee();
     } else {
       setState(() {
         _getbyweeksales();
         _getbydaygraph();
         _getbytopseller();
         _getbyitems();
+        _getbyemployee();
       });
     }
   }
@@ -174,7 +176,7 @@ class _DailyState extends State<Daily> {
   }
 
   Future<void> _getGraphData() async {
-    if (widget.branchid == 'all') {
+    if (widget.branchid == 'All Branches') {
       await _getalldaygraph();
     } else {
       await _getbydaygraph();
@@ -311,6 +313,53 @@ class _DailyState extends State<Daily> {
     }
   }
 
+  Future<void> _getallemployee() async {
+    DateFormat dateFormat = DateFormat('yyyy-MM-dd');
+    String formattedFirstDate = dateFormat.format(now);
+    String formattedDateRange = '$formattedFirstDate';
+    print('date: $formattedDateRange');
+    final response = await DailySales().dailyemployee(formattedDateRange);
+    if (helper.getStatusString(APIStatus.success) == response.message) {
+      final jsondata = json.encode(response.result);
+      for (var itemsinfo in json.decode(jsondata)) {
+        setState(() {
+          StaffModel staffs = StaffModel(
+            itemsinfo['cashier'].toString(),
+            itemsinfo['totalSales'].toString(),
+            itemsinfo['branch'].toString(),
+            itemsinfo['soldItems'].toString(),
+            itemsinfo['commission'].toString(),
+          );
+          totaldailystaff.add(staffs);
+        });
+      }
+    }
+  }
+
+  Future<void> _getbyemployee() async {
+    DateFormat dateFormat = DateFormat('yyyy-MM-dd');
+    String formattedFirstDate = dateFormat.format(now);
+    String formattedDateRange = '$formattedFirstDate';
+    print('date: $formattedDateRange');
+    final response =
+        await DailySales().dailybyemployee(formattedDateRange, widget.branchid);
+    if (helper.getStatusString(APIStatus.success) == response.message) {
+      final jsondata = json.encode(response.result);
+      for (var itemsinfo in json.decode(jsondata)) {
+        setState(() {
+          StaffModel staffs = StaffModel(
+            itemsinfo['cashier'].toString(),
+            itemsinfo['totalSales'].toString(),
+            itemsinfo['branch'].toString(),
+            itemsinfo['soldItems'].toString(),
+            itemsinfo['commission'].toString(),
+          );
+          totaldailystaff.add(staffs);
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     String formattedCurrentDate = DateFormat('yyyy-MM-dd').format(currentdate);
@@ -344,7 +393,7 @@ class _DailyState extends State<Daily> {
                   setState(() {
                     now = now.subtract(Duration(days: 1));
                     print(now);
-                    if (widget.branchid == 'all') {
+                    if (widget.branchid == 'All Branches') {
                       _getalldaysales();
                       salesgraph.clear();
                       _getalldaygraph();
@@ -352,6 +401,8 @@ class _DailyState extends State<Daily> {
                       _getalltopseller();
                       totaldailyitems.clear();
                       _getallitems();
+                      totaldailystaff.clear();
+                      _getallemployee();
                     } else {
                       setState(() {
                         _getbyweeksales();
@@ -361,6 +412,8 @@ class _DailyState extends State<Daily> {
                         _getbytopseller();
                         totaldailyitems.clear();
                         _getbyitems();
+                        totaldailystaff.clear();
+                        _getbyemployee();
                       });
                     }
                   });
@@ -387,7 +440,7 @@ class _DailyState extends State<Daily> {
                     print(formattedCurrentDate);
                     setState(() {
                       now = now.add(Duration(days: 1));
-                      if (widget.branchid == 'all') {
+                      if (widget.branchid == 'All Branches') {
                         _getalldaysales();
                         salesgraph.clear();
                         _getalldaygraph();
@@ -395,6 +448,8 @@ class _DailyState extends State<Daily> {
                         _getalltopseller();
                         totaldailyitems.clear();
                         _getallitems();
+                        totaldailystaff.clear();
+                        _getallemployee();
                       } else {
                         setState(() {
                           _getbyweeksales();
@@ -404,6 +459,8 @@ class _DailyState extends State<Daily> {
                           _getbytopseller();
                           totaldailyitems.clear();
                           _getbyitems();
+                          totaldailystaff.clear();
+                          _getbyemployee();
                         });
                       }
                     });
@@ -688,6 +745,7 @@ class _DailyState extends State<Daily> {
               right: 10,
               child: Container(
                 width: MediaQuery.of(context).size.width,
+                height: 421,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: Colors.black26, width: 1),
@@ -702,72 +760,97 @@ class _DailyState extends State<Daily> {
                     ),
                     Padding(
                       padding: EdgeInsets.only(
-                          left: 0, right: 10, bottom: 20, top: 20),
-                      child: FutureBuilder<void>(
-                        future: !_dataFetched ? _getGraphData() : null,
-                        builder: (context, _) {
-                          _dataFetched = true;
-                          print('SalesGraph data: $salesgraph');
-                          return SfCartesianChart(
-                            primaryXAxis: CategoryAxis(
-                              majorTickLines: MajorTickLines(size: 0),
-                              labelPlacement: LabelPlacement.onTicks,
-                            ),
-                            primaryYAxis: NumericAxis(
-                              isVisible: true,
-                              numberFormat: NumberFormat.compact(),
-                            ),
-                            series: <CartesianSeries>[
-                              AreaSeries<SalesGraph, String>(
-                                color: Color.fromRGBO(52, 177, 170, 1.0),
-                                dataSource: salesgraph,
-                                xValueMapper: (SalesGraph sales, _) =>
-                                    sales.date,
-                                yValueMapper: (SalesGraph sales, _) =>
-                                    sales.total,
-                                markerSettings: MarkerSettings(
-                                  isVisible: true,
-                                ),
-                                // dataLabelSettings: DataLabelSettings(
-                                //   isVisible: _showDataLabels,
-                                // ),
-                              ),
-                            ],
-                          );
-                        },
+                          left: 20, right: 20, top: 10, bottom: 0),
+                      child: Divider(
+                        thickness: 1,
+                        color: Colors.black26,
                       ),
-                    )
+                    ),
+                    salesgraph.isEmpty
+                        ? Padding(
+                            padding: EdgeInsets.only(top: 130),
+                            child: Text(
+                              'No data found',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          )
+                        : Padding(
+                            padding: EdgeInsets.only(
+                                left: 0, right: 10, bottom: 20, top: 10),
+                            child: FutureBuilder<void>(
+                              future: !_dataFetched ? _getGraphData() : null,
+                              builder: (context, _) {
+                                _dataFetched = true;
+                                print('SalesGraph data: $salesgraph');
+                                return SfCartesianChart(
+                                  primaryXAxis: CategoryAxis(
+                                    majorTickLines: MajorTickLines(size: 0),
+                                    labelPlacement: LabelPlacement.onTicks,
+                                  ),
+                                  primaryYAxis: NumericAxis(
+                                    isVisible: true,
+                                    numberFormat: NumberFormat.compact(),
+                                  ),
+                                  series: <CartesianSeries>[
+                                    AreaSeries<SalesGraph, String>(
+                                      color: Color.fromRGBO(52, 177, 170, 1.0),
+                                      dataSource: salesgraph,
+                                      xValueMapper: (SalesGraph sales, _) =>
+                                          sales.date,
+                                      yValueMapper: (SalesGraph sales, _) =>
+                                          sales.total,
+                                      markerSettings: MarkerSettings(
+                                        isVisible: true,
+                                      ),
+                                      // dataLabelSettings: DataLabelSettings(
+                                      //   isVisible: _showDataLabels,
+                                      // ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          )
                   ],
                 ),
               ),
             ),
             Positioned(
-              top: 610,
+              top: 620,
               left: 10,
               right: 10,
               child: Container(
                 width: MediaQuery.of(context).size.width,
-                height: 390,
+                height: 410,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: Colors.black26, width: 1),
                 ),
-                child: topseller.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No data found',
-                          style: TextStyle(fontSize: 20),
-                        ),
-                      )
-                    : Column(
-                        children: [
-                          SizedBox(height: 20),
-                          Text(
-                            'Top Sellers',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 20),
-                          ),
-                          SfCircularChart(
+                child: Column(
+                  children: [
+                    SizedBox(height: 20),
+                    Text(
+                      'Top Sellers',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(
+                          left: 20, right: 20, top: 10, bottom: 0),
+                      child: Divider(
+                        thickness: 1,
+                        color: Colors.black26,
+                      ),
+                    ),
+                    topseller.isEmpty
+                        ? Padding(
+                            padding: EdgeInsets.only(top: 130),
+                            child: Text(
+                              'No data found',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          )
+                        : SfCircularChart(
                             legend: Legend(
                               isVisible: true,
                               position: LegendPosition.bottom,
@@ -812,16 +895,16 @@ class _DailyState extends State<Daily> {
                               ),
                             ],
                           ),
-                        ],
-                      ),
+                  ],
+                ),
               ),
             ),
             Positioned(
-              top: 1025,
+              top: 1057,
               left: 10,
               right: 10,
               child: Container(
-                  height: 600,
+                  height: 410,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: Colors.black26, width: 1)),
@@ -842,7 +925,7 @@ class _DailyState extends State<Daily> {
                       Padding(
                         padding: EdgeInsets.only(left: 10, right: 10),
                         child: Container(
-                            height: 520,
+                            height: 325,
                             // decoration: BoxDecoration(
                             //     border:
                             //         Border.all(color: Colors.black, width: 1)),
@@ -851,7 +934,8 @@ class _DailyState extends State<Daily> {
                               child: totaldailyitems.isEmpty
                                   ? Center(
                                       child: Text(
-                                        "No Items",
+                                        'No data found',
+                                        style: TextStyle(fontSize: 16),
                                       ),
                                     )
                                   : ListView.builder(
@@ -1019,6 +1103,169 @@ class _DailyState extends State<Daily> {
                                                               right: 0.0),
                                                       child: Text(
                                                         '₱ ${toCurrencyString(totaldailyitems[index].price.toString())}',
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          color: Colors.black,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                            )),
+                      ),
+                    ],
+                  )),
+            ),
+            Positioned(
+              top: 1495,
+              left: 10,
+              right: 10,
+              child: Container(
+                  height: 410,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.black26, width: 1)),
+                  child: Column(
+                    children: [
+                      SizedBox(height: 20),
+                      Text('Employees',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 20)),
+                      Padding(
+                        padding: EdgeInsets.only(
+                            left: 20, right: 20, top: 10, bottom: 0),
+                        child: Divider(
+                          thickness: 1,
+                          color: Colors.black26,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(left: 10, right: 10),
+                        child: Container(
+                            height: 325,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 0),
+                              child: totaldailyitems.isEmpty
+                                  ? Center(
+                                      child: Text(
+                                        'No data found',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    )
+                                  : ListView.builder(
+                                      itemCount: totaldailystaff.length,
+                                      itemBuilder: (context, index) {
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                              top: 5.0, left: 10, right: 10),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              showDialog(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return AlertDialog(
+                                                    title:
+                                                        Text("Items Details"),
+                                                    content: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Text(
+                                                            "Name: ${totaldailyitems[index].productName}"),
+                                                        Text(
+                                                            "Total Qty: ₱${totaldailyitems[index].quantity}"),
+                                                        Text(
+                                                            "Total Price: ₱${totaldailyitems[index].price}"),
+                                                        // Add more details as needed
+                                                      ],
+                                                    ),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                        },
+                                                        child: Text('Close'),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            },
+                                            child: Container(
+                                              height: 70,
+                                              width: MediaQuery.of(context)
+                                                  .size
+                                                  .width,
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                border: Border(
+                                                  bottom: BorderSide(
+                                                    color: Colors.black26,
+                                                    width: 1.0,
+                                                  ),
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.center,
+                                                children: [
+                                                  const SizedBox(
+                                                    width: 20,
+                                                  ),
+                                                  Expanded(
+                                                    child: Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          totaldailystaff[index]
+                                                              .cashier,
+                                                          style: TextStyle(
+                                                            fontSize: 15,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: Colors.black,
+                                                          ),
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                        Text(
+                                                          totaldailystaff[index]
+                                                              .branch,
+                                                          style: TextStyle(
+                                                            fontSize: 14,
+                                                            color: Colors.grey,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Align(
+                                                    alignment:
+                                                        Alignment.centerRight,
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              right: 0.0),
+                                                      child: Text(
+                                                        '₱ ${toCurrencyString(totaldailystaff[index].totalSales.toString())}',
                                                         style: TextStyle(
                                                           fontSize: 16,
                                                           color: Colors.black,

@@ -36,6 +36,24 @@ class Inventory {
     return data;
   }
 
+  Future<ResponceModel> getproductinventory(String productid) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.allproductlist}');
+    final response = await http.post(url, body: {
+      'productid': productid,
+    });
+
+    final responseData = json.decode(response.body);
+    final status = response.statusCode;
+    final message = responseData['msg'];
+    final result = responseData['data'] ?? [];
+    final description = responseData['description'] ?? "";
+
+    print('result $result');
+
+    ResponceModel data = ResponceModel(message, status, result, description);
+    return data;
+  }
+
   Future<ResponceModel> getimage(String productid) async {
     final url = Uri.parse('${Config.apiUrl}${Config.getimageAPI}');
     final response = await http.post(url, body: {
@@ -54,8 +72,15 @@ class Inventory {
     return data;
   }
 
-  Future<ResponceModel> save(String descriptions, String price, String category,
-      String barcode, String cost, String selectedFile, String fullname) async {
+  Future<ResponceModel> save(
+      String descriptions,
+      String price,
+      String category,
+      String barcode,
+      String cost,
+      String selectedFile,
+      String fullname,
+      String employeeid) async {
     final url = Uri.parse('${Config.apiUrl}${Config.saveproduct}');
     final response = await http.post(url, body: {
       'description': descriptions,
@@ -65,6 +90,7 @@ class Inventory {
       'cost': cost,
       'productimage': selectedFile,
       'fullname': fullname,
+      'employeeid': employeeid
     });
 
     final responseData = json.decode(response.body);
@@ -74,6 +100,37 @@ class Inventory {
     final description = responseData['description'] ?? "";
 
     print('result $result');
+
+    ResponceModel data = ResponceModel(message, status, result, description);
+    return data;
+  }
+
+  Future<ResponceModel> editproduct(
+      String productid,
+      String descriptions,
+      String selectedFile,
+      String barcode,
+      String category,
+      String cost,
+      String employeeid) async {
+    final url = Uri.parse('${Config.apiUrl}${Config.editproduct}');
+    final response = await http.post(url, body: {
+      'productid': productid,
+      'description': descriptions,
+      'productimage': selectedFile,
+      'barcode': barcode,
+      'category': category,
+      'cost': cost,
+      'employeeid': employeeid
+    });
+    print(
+        'productid: $productid, descriptions: $descriptions, category: $category, barcode: $barcode, cost: $cost,  employeeid: $employeeid selectedFile: $selectedFile,');
+
+    final responseData = json.decode(response.body);
+    final status = response.statusCode;
+    final message = responseData['msg'];
+    final result = responseData['data'] ?? [];
+    final description = responseData['description'] ?? "";
 
     ResponceModel data = ResponceModel(message, status, result, description);
     return data;

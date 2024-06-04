@@ -1,4 +1,17 @@
 import 'dart:ffi';
+import 'package:flutter/material.dart';
+
+class DomainModel {
+  final String domain;
+
+  DomainModel(this.domain);
+
+  factory DomainModel.fromJson(Map<String, dynamic> json) {
+    return DomainModel(
+      json['domain'],
+    );
+  }
+}
 
 class BranchesModel {
   final String branchid;
@@ -27,6 +40,27 @@ class BranchesModel {
   }
 }
 
+class PositionModel {
+  final String positioncode;
+  final String positionname;
+  final String status;
+  final String createdby;
+  final String createddate;
+
+  PositionModel(this.positioncode, this.positionname, this.status,
+      this.createdby, this.createddate);
+
+  factory PositionModel.fromJson(Map<String, dynamic> json) {
+    return PositionModel(
+      json['positioncode'],
+      json['positionname'],
+      json['status'],
+      json['createdby'],
+      json['createddate'],
+    );
+  }
+}
+
 class CategoryModel {
   final String categorycode;
   final String categoryname;
@@ -48,26 +82,157 @@ class CategoryModel {
   }
 }
 
+class NotificationModel {
+  final String notificationid;
+  final String userid;
+  final String branchid;
+  final String quantity;
+  final String message;
+  final String status;
+  final String checker;
+  final String date;
+  final String productname;
+  final String branch;
+
+  NotificationModel(
+    this.notificationid,
+    this.userid,
+    this.branchid,
+    this.quantity,
+    this.message,
+    this.status,
+    this.checker,
+    this.date,
+    this.productname,
+    this.branch,
+  );
+
+  factory NotificationModel.fromJson(Map<String, dynamic> json) {
+    return NotificationModel(
+      json['notificationid'],
+      json['userid'],
+      json['branchid'],
+      json['quantity'],
+      json['message'],
+      json['status'],
+      json['checker'],
+      json['date'],
+      json['productname'],
+      json['branch'],
+    );
+  }
+}
+
+class PushNotificationModel {
+  final String notificationid;
+  final String userid;
+  final String branchid;
+  final String quantity;
+  final String message;
+  final String status;
+  final String checker;
+  final String date;
+  final String productname;
+  final String branch;
+
+  PushNotificationModel(
+    this.notificationid,
+    this.userid,
+    this.branchid,
+    this.quantity,
+    this.message,
+    this.status,
+    this.checker,
+    this.date,
+    this.productname,
+    this.branch,
+  );
+
+  factory PushNotificationModel.fromJson(Map<String, dynamic> json) {
+    return PushNotificationModel(
+      json['notificationid'],
+      json['userid'],
+      json['branchid'],
+      json['quantity'],
+      json['message'],
+      json['status'],
+      json['checker'],
+      json['date'],
+      json['productname'],
+      json['branch'],
+    );
+  }
+}
+
+class PaymentModel {
+  final String paymentid;
+  final String paymentname;
+  final String status;
+  final String createdby;
+  final String createddate;
+
+  PaymentModel(this.paymentid, this.paymentname, this.status, this.createdby,
+      this.createddate);
+
+  factory PaymentModel.fromJson(Map<String, dynamic> json) {
+    return PaymentModel(
+      json['paymentid'],
+      json['paymentname'],
+      json['status'],
+      json['createdby'],
+      json['createddate'],
+    );
+  }
+}
+
 class InventoryModel {
   final String inventoryid;
   final String productname;
   final String branchid;
+  final String branchname;
   final String quantity;
   final String category;
   final String productid;
 
   InventoryModel(this.inventoryid, this.productname, this.branchid,
-      this.quantity, this.category, this.productid);
+      this.branchname, this.quantity, this.category, this.productid);
 
   factory InventoryModel.fromJson(Map<String, dynamic> json) {
     return InventoryModel(
       json['inventoryid'],
       json['productname'],
       json['branchid'],
+      json['branchname'],
       json['quantity'],
       json['category'],
       json['productid'],
     );
+  }
+}
+
+class InventoryItemModel {
+  String inventoryid;
+  String productname;
+  String branchid;
+  String branchname;
+  String quantity;
+  String category;
+  String productid;
+  bool isChecked;
+  late TextEditingController controller; // Declare controller as non-nullable
+
+  InventoryItemModel(
+    this.inventoryid,
+    this.productname,
+    this.branchid,
+    this.branchname,
+    this.quantity,
+    this.category,
+    this.productid, {
+    this.isChecked = false,
+  }) {
+    controller =
+        TextEditingController(); // Initialize controller in the constructor
   }
 }
 
@@ -76,12 +241,13 @@ class ProductModel {
   final String description;
   final String price;
   final String category;
+  final String categorycode;
   final String cost;
   final String barcode;
   final String status;
 
   ProductModel(this.productid, this.description, this.price, this.category,
-      this.cost, this.barcode, this.status);
+      this.categorycode, this.cost, this.barcode, this.status);
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     return ProductModel(
@@ -89,6 +255,7 @@ class ProductModel {
       json['description'],
       json['price'],
       json['category'],
+      json['categorycode'],
       json['cost'],
       json['barcode'],
       json['status'],
@@ -311,26 +478,72 @@ class Topseller {
   }
 }
 
-class AllImage {
-  final String productid;
-  final String image;
+class EmployeeModel {
+  final String employeeid;
+  final String fullname;
+  final String position;
+  final String positionname;
+  final String contact;
+  final String datehired;
+  final String createddate;
 
-  AllImage(
-    this.productid,
-    this.image,
-  );
+  EmployeeModel(this.employeeid, this.fullname, this.position,
+      this.positionname, this.contact, this.datehired, this.createddate);
 
-  factory AllImage.fromJson(Map<String, dynamic> json) {
-    return AllImage(
-      json['productid'].toString(),
-      json['image'].toString(),
+  factory EmployeeModel.fromJson(Map<String, dynamic> json) {
+    return EmployeeModel(
+      json['employeeid'],
+      json['fullname'],
+      json['position'],
+      json['positionname'],
+      json['contact'],
+      json['datehired'],
+      json['createddate'],
     );
   }
+}
 
-  Map<String, dynamic> toJson() {
-    return {
-      'productid': productid,
-      'image': image,
-    };
+class UserModel {
+  final String employeeid;
+  final String fullname;
+  final String position;
+  final String contactinfo;
+  final String datehired;
+  final String usercode;
+  final String accesstype;
+  final String positiontype;
+  final String status;
+
+  UserModel(
+    this.employeeid,
+    this.fullname,
+    this.position,
+    this.contactinfo,
+    this.datehired,
+    this.usercode,
+    this.accesstype,
+    this.positiontype,
+    this.status,
+  );
+
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      json['employeeid'],
+      json['fullname'],
+      json['position'],
+      json['contactinfo'],
+      json['datehired'],
+      json['usercode'],
+      json['accesstype'],
+      json['positiontype'],
+      json['status'],
+    );
   }
 }
+
+// class Category {
+//   final String categoryname;
+//   final String categorycode;
+
+//   Category(this.categoryname, this.categorycode);
+// }
