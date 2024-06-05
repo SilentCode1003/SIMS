@@ -1,13 +1,25 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:sims/model/responce.dart';
+import 'package:sims/repository/helper.dart';
 
 import '../config.dart';
 import 'package:http/http.dart' as http;
 
 class Login {
   Future<ResponceModel> login(String username, String password) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.loginAPI}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.loginAPI}');
     final response = await http.post(url, body: {
       'username': username,
       'password': password,
@@ -27,7 +39,17 @@ class Login {
 
   Future<ResponceModel> changepass(
       String currentpassword, String newpassword, usercode, employeeid) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.changepass}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.changepass}');
     final response = await http.post(url, body: {
       'currentpassword': currentpassword,
       'newpassword': newpassword,
