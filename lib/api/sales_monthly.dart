@@ -1,13 +1,26 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:sims/model/responce.dart';
 
 import '../config.dart';
 import 'package:http/http.dart' as http;
 
+import '../repository/helper.dart';
+
 class MontlySales {
   Future<ResponceModel> allmonthsales(String daterange) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allmonthsales}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.allmonthsales}');
     final response = await http.post(url, body: {'daterange': daterange});
 
     final responseData = json.decode(response.body);
@@ -22,7 +35,17 @@ class MontlySales {
   }
 
   Future<ResponceModel> bymonthsales(String daterange, String branch) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allmonthsales}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.allmonthsales}');
     final response =
         await http.post(url, body: {'daterange': daterange, 'branch': branch});
 
@@ -37,7 +60,17 @@ class MontlySales {
   }
 
   Future<ResponceModel> allmonthgraph(String daterange) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.monthlygraph}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.monthlygraph}');
     final response = await http.post(url, body: {'daterange': daterange});
 
     final responseData = json.decode(response.body);
@@ -51,7 +84,17 @@ class MontlySales {
   }
 
   Future<ResponceModel> bymonthlygraph(String daterange, String branch) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.monthlygraph}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.monthlygraph}');
     final response =
         await http.post(url, body: {'daterange': daterange, 'branch': branch});
 
@@ -67,7 +110,17 @@ class MontlySales {
   }
 
   Future<ResponceModel> alltopseller(String daterange) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.monthlytopseller}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.monthlytopseller}');
     final response = await http.post(url, body: {'daterange': daterange});
 
     final responseData = json.decode(response.body);
@@ -81,7 +134,17 @@ class MontlySales {
   }
 
   Future<ResponceModel> bytopseller(String daterange, String branch) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.monthlytopseller}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.monthlytopseller}');
     final response =
         await http.post(url, body: {'daterange': daterange, 'branch': branch});
 
@@ -97,7 +160,17 @@ class MontlySales {
   }
 
   Future<ResponceModel> allitem(String daterange) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.monthlyitem}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.monthlyitem}');
     final response = await http.post(url, body: {'daterange': daterange});
 
     final responseData = json.decode(response.body);
@@ -112,7 +185,18 @@ class MontlySales {
   }
 
   Future<ResponceModel> byitem(String daterange, String branch) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.monthlyitem}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.monthlyitem}');
+
     final response =
         await http.post(url, body: {'daterange': daterange, 'branch': branch});
 
@@ -128,7 +212,17 @@ class MontlySales {
   }
 
   Future<ResponceModel> monthemployee(String daterange) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.monthemployeesales}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.monthemployeesales}');
     final response = await http.post(url, body: {'daterange': daterange});
 
     final responseData = json.decode(response.body);
@@ -146,7 +240,17 @@ class MontlySales {
   }
 
   Future<ResponceModel> monthbyemployee(String daterange, String branch) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.monthemployeesales}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.monthemployeesales}');
     final response =
         await http.post(url, body: {'daterange': daterange, 'branch': branch});
 

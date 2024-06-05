@@ -134,3 +134,43 @@ Future<String> getDownloadDir() async {
     return '';
   }
 }
+
+Future<void> JsonToFileWrite(
+    Map<String, dynamic> jsonData, String filename) async {
+  try {
+    // Get the app's documents directory
+    final directory = await getApplicationDocumentsDirectory();
+    final filePath = '${directory.path}/$filename';
+
+    // Write JSON data to file
+    final file = File(filePath);
+
+    await file.writeAsString(json.encode(jsonData));
+
+    print('JSON data written to: $filePath');
+  } catch (e) {
+    print('Error writing JSON data: $e');
+  }
+}
+
+Future<Map<String, dynamic>> JsonToFileRead(String filename) async {
+  final directory = await getApplicationDocumentsDirectory();
+  final filePath = '${directory.path}/$filename';
+  final file = File(filePath);
+
+  print('JSON data read to: $filePath');
+
+  // Check if the file exists
+  if (!file.existsSync()) {
+    print('File does not exist.');
+  }
+
+  // Read the contents of the file
+  String jsonString = await file.readAsString();
+  print(jsonString);
+
+  // Parse the JSON string into a Map
+  Map<String, dynamic> jsonData = jsonDecode(jsonString);
+
+  return jsonData;
+}
