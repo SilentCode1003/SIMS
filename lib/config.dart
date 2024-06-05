@@ -1,6 +1,6 @@
 class Config {
   //static const String apiUrl = "http://192.168.40.101:3050/";
-  static const String apiUrl = "http://192.168.40.48:3050/";
+  // static const String apiUrl = "http://192.168.40.48:3050/";
   //static const String apiUrl = "https://salesinventory.5lsolutions.com/";
 
   //Index

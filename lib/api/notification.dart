@@ -1,13 +1,25 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:sims/model/responce.dart';
+import 'package:sims/repository/helper.dart';
 
 import '../config.dart';
 import 'package:http/http.dart' as http;
 
 class Notifications {
   Future<ResponceModel> getnotification(String usercode) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.getnotification}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.getnotification}');
     final response = await http.post(url, body: {'usercode': usercode});
 
     final responseData = json.decode(response.body);
@@ -21,7 +33,17 @@ class Notifications {
   }
 
   Future<ResponceModel> readnotification(String notificationid) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.readnotification}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.readnotification}');
     final response =
         await http.post(url, body: {'notificationid': notificationid});
 
@@ -36,7 +58,17 @@ class Notifications {
   }
 
   Future<ResponceModel> deletenotification(String notificationid) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.deletenotification}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.deletenotification}');
     final response =
         await http.post(url, body: {'notificationid': notificationid});
 
@@ -51,7 +83,17 @@ class Notifications {
   }
 
   Future<ResponceModel> recievednotification(String notificationid) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.recievednotification}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.recievednotification}');
     final response =
         await http.post(url, body: {'notificationid': notificationid});
 

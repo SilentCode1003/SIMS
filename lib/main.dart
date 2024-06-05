@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'view/index.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sims/repository/helper.dart';
@@ -29,11 +30,20 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _getDomain() async {
-    Map<String, dynamic> userinfo =
-        await Helper().readJsonToFile('server.json');
+    Map<String, dynamic> userinfo = {};
+    if (Platform.isWindows) {
+      userinfo = await Helper().readJsonToFile('server.json');
+    }
+
+    if (Platform.isAndroid) {
+      userinfo = await JsonToFileRead('server.json');
+    }
+
     DomainModel user = DomainModel(
       userinfo['domain'].toString(),
     );
+
+    print(userinfo['domain']);
     setState(() {
       domain = user.domain;
     });
@@ -48,7 +58,7 @@ class _MyAppState extends State<MyApp> {
         primaryColor: Colors.white,
         useMaterial3: false,
       ),
-      home: domain.isEmpty ? const DomainPage() : const OpeningPage(),
+      home: (domain.isEmpty) ? const DomainPage() : const OpeningPage(),
       routes: {'/logout': ((context) => const LoginPage())},
     );
   }
@@ -125,27 +135,96 @@ class _DomainPage extends State<DomainPage> {
   }
 
   Future<void> _domain(BuildContext context) async {
+    createJsonFile('server.json');
     String domain = _DomainController.text;
+
+    print(domain);
+
+    if (domain.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please input server IP Address / domain host'),
+        ),
+      );
+    } else {
+      try {
+        if (Platform.isWindows) {
+          await helper.writeJsonToFile({'domain': domain}, 'server.json').then(
+              (result) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Domain saved successfully!'),
+              ),
+            );
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const OpeningPage(),
+              ),
+            );
+          });
+        }
+
+        if (Platform.isAndroid) {
+          await JsonToFileWrite({'domain': domain}, 'server.json')
+              .then((result) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Domain saved successfully!'),
+              ),
+            );
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const OpeningPage(),
+              ),
+            );
+          });
+        }
+      } catch (e) {
+        print(e);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save domain!'),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> createJsonFile(filename) async {
     try {
-      await helper.writeJsonToFile({'domain': domain}, 'server.json');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Domain saved successfully!'),
-        ),
-      );
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => OpeningPage(),
-        ),
-      );
+      // Get the current working
+
+      final directory = await getApplicationDocumentsDirectory();
+
+      // Specify the file name and path
+      final filePath = '${directory.path}/$filename';
+
+      // Create a File object
+      final File file = File(filePath);
+
+      if (file.existsSync()) {
+        return;
+      }
+
+      // Create a Map (or any other data structure) to convert to JSON
+      Map<String, dynamic> jsonData = {};
+      if (filename == 'server.json') {
+        jsonData = {'domain': ''};
+      }
+
+      // Convert the Map to a JSON string
+      final jsonString = jsonEncode(jsonData);
+
+      // Write the JSON string to the file
+      file.writeAsStringSync(jsonString);
+
+      print('JSON file created successfully at: $filePath');
     } catch (e) {
-      print(e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to save domain!'),
-        ),
-      );
+      print('Error creating JSON file: $e');
     }
   }
 
