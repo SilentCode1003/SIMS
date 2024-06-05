@@ -1,13 +1,26 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:sims/model/responce.dart';
 
 import '../config.dart';
 import 'package:http/http.dart' as http;
 
+import '../repository/helper.dart';
+
 class Employees {
   Future<ResponceModel> employee() async {
-    final url = Uri.parse('${Config.apiUrl}${Config.employeelist}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.employeelist}');
     final response = await http.post(url);
 
     final responseData = json.decode(response.body);
@@ -21,7 +34,17 @@ class Employees {
   }
 
   Future<ResponceModel> getemployee(String employeeid) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.employeelist}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.employeelist}');
     final response = await http.post(url, body: {
       'employeeid': employeeid,
     });
@@ -43,7 +66,17 @@ class Employees {
       String datehired,
       String createdby,
       String employeeid) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.addemployee}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.addemployee}');
     final response = await http.post(url, body: {
       'fullname': fullname,
       'positionname': positionname,
@@ -72,7 +105,17 @@ class Employees {
     String contactinfo,
     String fullname,
   ) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.editemployee}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.editemployee}');
     final response = await http.post(url, body: {
       'employeeid': employeeid,
       'positionname': positionname,
@@ -93,7 +136,17 @@ class Employees {
   }
 
   Future<ResponceModel> position() async {
-    final url = Uri.parse('${Config.apiUrl}${Config.loadposition}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.loadposition}');
     final response = await http.get(url);
 
     final responseData = json.decode(response.body);

@@ -1,13 +1,26 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:sims/model/responce.dart';
 
 import '../config.dart';
 import 'package:http/http.dart' as http;
 
+import '../repository/helper.dart';
+
 class DailySales {
   Future<ResponceModel> alldailysales(String daterange) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.alldaysales}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.alldaysales}');
     final response = await http.post(url, body: {'daterange': daterange});
 
     final responseData = json.decode(response.body);
@@ -21,7 +34,17 @@ class DailySales {
   }
 
   Future<ResponceModel> bydailyssales(String daterange, String branch) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.alldaysales}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.alldaysales}');
     final response =
         await http.post(url, body: {'daterange': daterange, 'branch': branch});
 
@@ -36,7 +59,17 @@ class DailySales {
   }
 
   Future<ResponceModel> alldailygraph(String daterange) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.dailygraph}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.dailygraph}');
     final response = await http.post(url, body: {'daterange': daterange});
 
     final responseData = json.decode(response.body);
@@ -51,7 +84,17 @@ class DailySales {
   }
 
   Future<ResponceModel> bydailygraph(String daterange, String branch) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.dailygraph}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.dailygraph}');
     final response =
         await http.post(url, body: {'daterange': daterange, 'branch': branch});
 
@@ -67,7 +110,17 @@ class DailySales {
   }
 
   Future<ResponceModel> alltopseller(String daterange) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.weeklytopseller}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.weeklytopseller}');
     final response = await http.post(url, body: {'daterange': daterange});
 
     final responseData = json.decode(response.body);
@@ -81,7 +134,17 @@ class DailySales {
   }
 
   Future<ResponceModel> bytopseller(String daterange, String branch) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.weeklytopseller}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.weeklytopseller}');
     final response =
         await http.post(url, body: {'daterange': daterange, 'branch': branch});
 
@@ -97,7 +160,17 @@ class DailySales {
   }
 
   Future<ResponceModel> allitem(String daterange) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.item}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.item}');
     final response = await http.post(url, body: {'daterange': daterange});
 
     final responseData = json.decode(response.body);
@@ -112,7 +185,17 @@ class DailySales {
   }
 
   Future<ResponceModel> byitem(String daterange, String branch) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.item}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.item}');
     final response =
         await http.post(url, body: {'daterange': daterange, 'branch': branch});
 
@@ -128,7 +211,17 @@ class DailySales {
   }
 
   Future<ResponceModel> dailyemployee(String daterange) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.dailyemployeesales}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.dailyemployeesales}');
     final response = await http.post(url, body: {'date': daterange});
 
     final responseData = json.decode(response.body);
@@ -146,7 +239,17 @@ class DailySales {
   }
 
   Future<ResponceModel> dailybyemployee(String daterange, String branch) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.dailyemployeesales}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.dailyemployeesales}');
     final response =
         await http.post(url, body: {'date': daterange, 'branch': branch});
 

@@ -1,11 +1,24 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:sims/model/responce.dart';
 import '../config.dart';
 import 'package:http/http.dart' as http;
 
+import '../repository/helper.dart';
+
 class Inventory {
   Future<ResponceModel> getallinventory() async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allproductlist}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.allproductlist}');
     final response = await http.post(url);
 
     final responseData = json.decode(response.body);
@@ -19,7 +32,17 @@ class Inventory {
   }
 
   Future<ResponceModel> filterallinventory(String category) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allproductlist}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.allproductlist}');
     final response = await http.post(url, body: {
       'category': category,
     });
@@ -37,7 +60,17 @@ class Inventory {
   }
 
   Future<ResponceModel> getproductinventory(String productid) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allproductlist}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.allproductlist}');
     final response = await http.post(url, body: {
       'productid': productid,
     });
@@ -55,7 +88,17 @@ class Inventory {
   }
 
   Future<ResponceModel> getimage(String productid) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.getimageAPI}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.getimageAPI}');
     final response = await http.post(url, body: {
       'productid': productid,
     });
@@ -81,7 +124,17 @@ class Inventory {
       String selectedFile,
       String fullname,
       String employeeid) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.saveproduct}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.saveproduct}');
     final response = await http.post(url, body: {
       'description': descriptions,
       'price': price,
@@ -113,7 +166,17 @@ class Inventory {
       String category,
       String cost,
       String employeeid) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.editproduct}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.editproduct}');
     final response = await http.post(url, body: {
       'productid': productid,
       'description': descriptions,
@@ -137,7 +200,17 @@ class Inventory {
   }
 
   Future<ResponceModel> getallimage() async {
-    final url = Uri.parse('${Config.apiUrl}${Config.allImage}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.allImage}');
     final response = await http.post(url);
 
     final responseData = json.decode(response.body);

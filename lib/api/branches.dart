@@ -1,13 +1,26 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:sims/model/responce.dart';
+import 'package:sims/repository/helper.dart';
 
 import '../config.dart';
 import 'package:http/http.dart' as http;
 
 class Branches {
   Future<ResponceModel> branches(String branchid) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.branchesAPI}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+
+    final url = Uri.parse('$host${Config.branchesAPI}');
     final response = await http.get(url);
 
     final responseData = json.decode(response.body);
@@ -30,7 +43,18 @@ class Branches {
       String logo,
       String createdby,
       String employeeid) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.addbranch}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+
+    final url = Uri.parse('$host${Config.addbranch}');
     final response = await http.post(url, body: {
       'branchid': branchid,
       'branchname': branchname,
@@ -56,7 +80,18 @@ class Branches {
 
   Future<ResponceModel> editbranch(String branchid, String branchname,
       String tin, String address, String logo, String employeeid) async {
-    final url = Uri.parse('${Config.apiUrl}${Config.editbranch}');
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+
+    final url = Uri.parse('$host${Config.editbranch}');
     final response = await http.post(url, body: {
       'branchid': branchid,
       'branchname': branchname,
