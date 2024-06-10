@@ -17,3 +17,8 @@ SIMS mobile is an mobile app used to monitor sales and inventory from fivePOS an
 
 - Added dynamic server connection
 - Added config for release
+
+### Version 1.0.2
+
+- fixed inventory bugs
+- 

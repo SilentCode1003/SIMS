@@ -110,7 +110,7 @@ class _ProductListState extends State<ProductList> {
           );
           productlist.add(items);
         });
-        await _getimage(itemsinfo['productid'].toString());
+         await _getimage(itemsinfo['productid'].toString());
       }
       printProductIds();
     }
@@ -184,35 +184,6 @@ class _ProductListState extends State<ProductList> {
             const Text('Product List', style: TextStyle(color: Colors.white)),
         backgroundColor: const Color.fromRGBO(52, 177, 170, 10),
         elevation: 0,
-        flexibleSpace: FlexibleSpaceBar(
-          centerTitle: true,
-          titlePadding: const EdgeInsets.only(right: 0.0),
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              badges.Badge(
-                badgeContent: const Text(
-                  '1',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-                position: badges.BadgePosition.topEnd(top: 0, end: 5),
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.notifications,
-                    size: 25.0,
-                  ),
-                  onPressed: () {},
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 15.0),
-            ],
-          ),
-        ),
       ),
       body: Stack(
         children: [
@@ -322,156 +293,130 @@ class _ProductListState extends State<ProductList> {
                 children: [
                   SizedBox(height: 10),
                   Expanded(
-                    child: ListView.builder(
-                      itemCount: productlist.length,
-                      itemBuilder: (context, rowIndex) {
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: 10),
-                          child: Wrap(
-                            spacing: 0,
-                            children: List.generate(
-                              2,
-                              (colIndex) {
-                                final index = rowIndex * 2 + colIndex;
-                                if (index >= productlist.length)
-                                  return SizedBox();
-                                return Padding(
-                                  padding: EdgeInsets.only(left: 10),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      print(productlist[index].productid);
-                                      print(productlist[index].description);
-                                      print(productlist[index].price);
-                                      print(productlist[index].category);
-                                      print(productlist[index].cost);
-                                      print(productlist[index].barcode);
-                                      print(productlist[index].status);
-                                      productid = productlist[index].productid;
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => ProductUpdate(
-                                            productid: productid,
-                                            employeeid: widget.employeeid,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: Container(
-                                        width: 182,
-                                        height: 210,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          color: Colors.white,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color:
-                                                  Colors.grey.withOpacity(0.2),
-                                              spreadRadius: 5,
-                                              blurRadius: 7,
-                                              offset: Offset(0, 3),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Stack(
-                                          children: [
-                                            Positioned(
-                                              top: 0,
-                                              left: 0,
-                                              right: 0,
-                                              child: Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
-                                                  ),
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
-                                                    child: images.isNotEmpty &&
-                                                            images.length >
-                                                                index &&
-                                                            images[index]
-                                                                    .productimage !=
-                                                                null
-                                                        ? imageCache.containsKey(
-                                                                productlist[
-                                                                        index]
-                                                                    .productid)
-                                                            ? imageCache[
-                                                                productlist[
-                                                                        index]
-                                                                    .productid]
-                                                            : Image.memory(
-                                                                base64Decode(images[
-                                                                        index]
-                                                                    .productimage),
-                                                                fit: BoxFit
-                                                                    .cover,
-                                                                width: 80.0,
-                                                                height: 140.0,
-                                                              )
-                                                        : Image.asset(
-                                                            'assets/paints.png',
-                                                            fit: BoxFit.cover,
-                                                            width: 80.0,
-                                                            height: 140.0,
-                                                          ),
-                                                  )),
-                                            ),
-                                            Positioned(
-                                              top: 150,
-                                              left: 0,
-                                              child: Container(
-                                                  width: 180,
-                                                  child: Padding(
-                                                    padding: EdgeInsets.only(
-                                                        left: 10, right: 10),
-                                                    child: Text(
-                                                      productlist[index]
-                                                          .description,
-                                                      style: TextStyle(
-                                                        fontSize: 18,
-                                                        color: Colors.black87,
-                                                      ),
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  )),
-                                            ),
-                                            Positioned(
-                                              top: 175,
-                                              left: 0,
-                                              child: Container(
-                                                  width: 180,
-                                                  child: Padding(
-                                                    padding: EdgeInsets.only(
-                                                        left: 10, right: 10),
-                                                    child: Text(
-                                                      'Price: ${productlist[index].price}',
-                                                      style: TextStyle(
-                                                        fontSize: 18,
-                                                        color: Colors.black87,
-                                                      ),
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  )),
-                                            )
-                                          ],
-                                        )),
+                    child: GridView.extent(
+                      maxCrossAxisExtent: 200,
+                      padding: const EdgeInsets.all(10),
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      children: List.generate(
+                        productlist.length,
+                        (index) {
+                          return GestureDetector(
+                              onTap: () {
+                                productid = productlist[index].productid;
+                                print(productid);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProductUpdate(
+                                      productid: productid,
+                                      employeeid: widget.employeeid,
+                                    ),
                                   ),
                                 );
                               },
-                            ),
-                          ),
-                        );
-                      },
+                              child: Container(
+                                padding: const EdgeInsets.all(0),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.2),
+                                      spreadRadius: 5,
+                                      blurRadius: 7,
+                                      offset: Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Padding(
+                                        padding: EdgeInsets.only(bottom: 0),
+                                        child: Container(
+                                            width: MediaQuery.of(context)
+                                                .size
+                                                .width,
+                                            height: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                1,
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              child: images.isNotEmpty &&
+                                                      images.length > index &&
+                                                      images[index]
+                                                              .productimage !=
+                                                          null
+                                                  ? imageCache.containsKey(
+                                                          productlist[index]
+                                                              .productid)
+                                                      ? imageCache[
+                                                          productlist[index]
+                                                              .productid]
+                                                      : Image.memory(
+                                                          base64Decode(images[
+                                                                  index]
+                                                              .productimage),
+                                                          fit: BoxFit.cover,
+                                                          width: 80.0,
+                                                          height: 140.0,
+                                                        )
+                                                  : Image.asset(
+                                                      'assets/paints.png',
+                                                      fit: BoxFit.cover,
+                                                      width: 80.0,
+                                                      height: 140.0,
+                                                    ),
+                                            )),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    Padding(
+                                      padding: EdgeInsets.only(left: 10),
+                                      child: Text(
+                                        productlist[index].description,
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          color: Colors.black87,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    Padding(
+                                      padding: EdgeInsets.only(left: 10),
+                                      child: Text(
+                                        productlist[index].price,
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          color: Colors.black87,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                  ],
+                                ),
+                              ));
+                        },
+                      ),
                     ),
                   ),
                   SizedBox(height: 10),

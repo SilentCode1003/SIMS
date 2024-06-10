@@ -34,6 +34,32 @@ class Catergory {
     return data;
   }
 
+  Future<ResponceModel> getcategory(String categorycode) async {
+    Map<String, dynamic> serverinfo = {};
+
+    if (Platform.isWindows) {
+      serverinfo = await Helper().readJsonToFile('server.json');
+    }
+    if (Platform.isAndroid) {
+      serverinfo = await JsonToFileRead('server.json');
+    }
+
+    String host = serverinfo['domain'];
+    final url = Uri.parse('$host${Config.getcategory}');
+    final response = await http.post(url, body: {
+      'categorycode': categorycode,
+    });
+
+    final responseData = json.decode(response.body);
+    final status = response.statusCode;
+    final message = responseData['msg'];
+    final result = responseData['data'] ?? [];
+    final description = responseData['description'] ?? "";
+
+    ResponceModel data = ResponceModel(message, status, result, description);
+    return data;
+  }
+
   Future<ResponceModel> savecategory(
       String categoryname, String fullname, String employeeid) async {
     Map<String, dynamic> serverinfo = {};
@@ -58,8 +84,6 @@ class Catergory {
     final message = responseData['msg'];
     final result = responseData['data'] ?? [];
     final description = responseData['description'] ?? "";
-
-    print('result $message');
 
     ResponceModel data = ResponceModel(message, status, result, description);
     return data;
@@ -90,7 +114,7 @@ class Catergory {
     final result = responseData['data'] ?? [];
     final description = responseData['description'] ?? "";
 
-    print('result $message');
+    print(responseData);
 
     ResponceModel data = ResponceModel(message, status, result, description);
     return data;
