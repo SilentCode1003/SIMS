@@ -177,7 +177,7 @@ class Inventory {
 
     String host = serverinfo['domain'];
     final url = Uri.parse('$host${Config.editproduct}');
-    final response = await http.post(url, body: {
+    final response = await http.patch(url, body: {
       'productid': productid,
       'description': descriptions,
       'productimage': selectedFile,

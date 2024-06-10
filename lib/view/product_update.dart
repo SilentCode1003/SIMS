@@ -27,6 +27,7 @@ class _ProductState extends State<ProductUpdate> {
   TextEditingController CategoryCode = TextEditingController();
   TextEditingController Barcode = TextEditingController();
   TextEditingController Cost = TextEditingController();
+  String categorycode = '';
   String? selectedFile;
   String selectedBranch = '';
   String fullname = 'Joseph Orencio';
@@ -35,12 +36,14 @@ class _ProductState extends State<ProductUpdate> {
   List<ImageModel> images = [];
   List<CategoryModel> categories = [];
   Map<String, Image> imageCache = {};
+
   final CurrencyInputFormatter _currencyFormatter = CurrencyInputFormatter();
 
   @override
   void initState() {
     super.initState();
     _getinventory();
+    _getcategory();
   }
 
   Future<void> _edit() async {
@@ -95,8 +98,8 @@ class _ProductState extends State<ProductUpdate> {
     }
   }
 
-  Future<void> _getcategories() async {
-    final response = await Catergory().categories();
+  Future<void> _getcategory() async {
+    final response = await Catergory().getcategory(categorycode);
     if (helper.getStatusString(APIStatus.success) == response.message) {
       setState(() {
         final jsondata = json.encode(response.result);
@@ -109,6 +112,8 @@ class _ProductState extends State<ProductUpdate> {
             branchesinfo['createddate'],
           );
           categories.add(categoriesinfos);
+          CategoryName.text = categoriesinfos.categoryname;
+          print('categorycode: $CategoryName');
         }
       });
     }
@@ -134,10 +139,12 @@ class _ProductState extends State<ProductUpdate> {
           productlist.add(items);
           Description.text = productlist[index].description;
           Price.text = productlist[index].price;
-          CategoryName.text = productlist[index].category;
+          // CategoryName.text = productlist[index].category;
           CategoryCode.text = productlist[index].categorycode;
           Barcode.text = productlist[index].barcode;
           Cost.text = productlist[index].cost;
+          categorycode = CategoryCode.text;
+          // print('category code: $categorycode');
           index++;
         });
         await _getimage(itemsinfo['productid'].toString());
@@ -497,7 +504,9 @@ class _ProductState extends State<ProductUpdate> {
                           setState(() {
                             selectedBranch = branch;
                             CategoryCode.text = selectedBranch;
-                            print('ito na nga $selectedBranch');
+                            categorycode = selectedBranch;
+                            categories.clear();
+                            _getcategory();
                           });
                         },
                       );
@@ -505,7 +514,7 @@ class _ProductState extends State<ProductUpdate> {
                   );
                 },
                 child: TextField(
-                  controller: CategoryCode,
+                  controller: CategoryName,
                   enabled: false,
                   decoration: InputDecoration(
                     border: UnderlineInputBorder(

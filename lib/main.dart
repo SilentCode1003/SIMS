@@ -8,6 +8,7 @@ import 'package:sims/repository/helper.dart';
 import 'package:sims/api/login.dart';
 import 'dart:convert';
 import 'package:sims/model/modelinfo.dart';
+import 'package:sims/view/gridview.dart';
 
 void main() async {
   runApp(const MyApp());
@@ -196,30 +197,21 @@ class _DomainPage extends State<DomainPage> {
 
   Future<void> createJsonFile(filename) async {
     try {
-      // Get the current working
-
       final directory = await getApplicationDocumentsDirectory();
 
-      // Specify the file name and path
       final filePath = '${directory.path}/$filename';
 
-      // Create a File object
       final File file = File(filePath);
 
       if (file.existsSync()) {
         return;
       }
-
-      // Create a Map (or any other data structure) to convert to JSON
       Map<String, dynamic> jsonData = {};
       if (filename == 'server.json') {
         jsonData = {'domain': ''};
       }
 
-      // Convert the Map to a JSON string
       final jsonString = jsonEncode(jsonData);
-
-      // Write the JSON string to the file
       file.writeAsStringSync(jsonString);
 
       print('JSON file created successfully at: $filePath');

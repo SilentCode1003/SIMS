@@ -12,7 +12,6 @@ import 'package:sims/view/itembranch.dart';
 import 'package:sims/api/home.dart';
 import 'dart:async';
 
-
 class Home extends StatefulWidget {
   const Home({super.key});
 
@@ -22,6 +21,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   String selectedBranch = 'All Branches';
+  DateTime _selectedDate = DateTime.now();
   dynamic GrossSales = '';
   dynamic Discounts = '';
   dynamic NetSales = '';
@@ -143,6 +143,7 @@ class _HomeState extends State<Home> {
   Future<void> _getallyeargraph() async {
     DateFormat dateFormat = DateFormat('yyyy');
     String formattedFirstDate = dateFormat.format(year);
+    print('year: $formattedFirstDate');
     final response = await Dashboard().allyeargraph(formattedFirstDate);
     if (helper.getStatusString(APIStatus.success) == response.message) {
       final jsondata = json.decode(json.encode(response.result));
@@ -325,6 +326,7 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    String formattedFirstDate = DateFormat('yyyy').format(year);
     return WillPopScope(
       onWillPop: () async {
         showExitDialog(context);
@@ -695,7 +697,7 @@ class _HomeState extends State<Home> {
                               selectedIndexCallback: (String branch) {
                                 setState(() {
                                   selectedBranch = branch;
-                                  if (selectedBranch == 'all') {
+                                  if (selectedBranch == 'All Branches') {
                                     _getallweeksales();
                                     salesgraph.clear();
                                     _getallyeargraph();
@@ -735,13 +737,62 @@ class _HomeState extends State<Home> {
                         ],
                       ))),
               Positioned(
-                  top: 310,
-                  right: 10,
+                top: 310,
+                right: 10,
+                child: GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text("Select Year"),
+                          content: Container(
+                            width: 300,
+                            height: 300,
+                            child: YearPicker(
+                              firstDate: DateTime(DateTime.now().year - 100, 1),
+                              lastDate: DateTime(DateTime.now().year + 100, 1),
+                              initialDate: DateTime.now(),
+                              selectedDate: _selectedDate,
+                              onChanged: (DateTime selectedDate) {
+                                setState(() {
+                                  year = selectedDate;
+                                  if (selectedBranch == 'All Branches') {
+                                    _getallweeksales();
+                                    salesgraph.clear();
+                                    _getallyeargraph();
+                                    topseller.clear();
+                                    _getalltopseller();
+                                    employeegraph.clear();
+                                    _getallyeargraphemployee();
+                                  } else {
+                                    setState(() {
+                                      _getbyweeksales();
+                                      salesgraph.clear();
+                                      _getbyyeargraph();
+                                      topseller.clear();
+                                      _getbytopseller();
+                                      employeegraph.clear();
+                                      _getbyyeargraphemployee();
+                                    });
+                                  }
+                                });
+                                Navigator.pop(context);
+                                print(year);
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
                   child: Row(
                     children: [
-                      Text('2024',
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text(
+                        DateFormat('yyyy').format(year),
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
                       SizedBox(
                         width: 10,
                       ),
@@ -750,7 +801,9 @@ class _HomeState extends State<Home> {
                         size: 25,
                       ),
                     ],
-                  )),
+                  ),
+                ),
+              ),
               Positioned(
                 top: 350,
                 left: 10,

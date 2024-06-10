@@ -6,6 +6,9 @@ import 'package:sims/view/salesbranch.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:art_sweetalert/art_sweetalert.dart';
 import 'package:sims/api/inventory.dart';
+import '../api/category.dart';
+import '../repository/helper.dart';
+import '../model/modelinfo.dart';
 
 class AddProduct extends StatefulWidget {
   final String fullname;
@@ -23,14 +26,40 @@ class _AddProductState extends State<AddProduct> {
   TextEditingController Category = TextEditingController();
   TextEditingController Barcode = TextEditingController();
   TextEditingController Cost = TextEditingController();
+  TextEditingController CategoryName = TextEditingController();
+  TextEditingController CategoryCode = TextEditingController();
+  String categorycode = '';
   String? selectedFile;
   String selectedBranch = '';
   String fullname = 'Joseph Orencio';
   final CurrencyInputFormatter _currencyFormatter = CurrencyInputFormatter();
+  Helper helper = Helper();
+  List<CategoryModel> categories = [];
 
   @override
   void initState() {
     super.initState();
+  }
+
+  Future<void> _getcategory() async {
+    final response = await Catergory().getcategory(selectedBranch);
+    if (helper.getStatusString(APIStatus.success) == response.message) {
+      setState(() {
+        final jsondata = json.encode(response.result);
+        for (var branchesinfo in json.decode(jsondata)) {
+          CategoryModel categoriesinfos = CategoryModel(
+            branchesinfo['categorycode'].toString(),
+            branchesinfo['categoryname'],
+            branchesinfo['status'],
+            branchesinfo['createdby'],
+            branchesinfo['createddate'],
+          );
+          categories.add(categoriesinfos);
+          CategoryName.text = categoriesinfos.categoryname;
+          print('categorycode: $CategoryName');
+        }
+      });
+    }
   }
 
   Future<void> _save() async {
@@ -410,6 +439,7 @@ class _AddProductState extends State<AddProduct> {
                             selectedBranch = branch;
                             Category.text = selectedBranch;
                             print('ito na nga $selectedBranch');
+                            _getcategory();
                           });
                         },
                       );
@@ -417,7 +447,7 @@ class _AddProductState extends State<AddProduct> {
                   );
                 },
                 child: TextField(
-                  controller: Category,
+                  controller: CategoryName,
                   enabled: false,
                   decoration: InputDecoration(
                     border: UnderlineInputBorder(
